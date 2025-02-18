@@ -1,0 +1,31 @@
+{
+  "name": "csc648-fa25-0104-team04",
+  "version": "1.0.0",
+  "description": "## Please when ready add your teams application URL or IP to the repository description. This will help with grading. Teams are expected to keep this value up to date.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CSC-648-SFSU/csc648-fa25-0104-team04.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CSC-648-SFSU/csc648-fa25-0104-team04/issues"
+  },
+  "homepage": "https://github.com/CSC-648-SFSU/csc648-fa25-0104-team04#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
