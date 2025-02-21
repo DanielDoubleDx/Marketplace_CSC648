@@ -9,11 +9,22 @@ body {
 h1, h2, h3 {
     margin: 5px;
 }
+p{
+    background-color: #887BB0;
+    color: white;
+    padding: 10px 5px;
+    cursor: pointer;
+    font-size: 10px;
+    width: 200px;
+    display: block;
+    margin: auto;
+    font-weight: bold
+}
 .container {
     width: 60%;
     margin: auto;
     padding: 20px;
-    background: white;
+    background: #ffdc70;
     margin-top: 50px;
     border-radius: 8px;
 }
@@ -23,8 +34,8 @@ h1, h2, h3 {
 }
 
 button {
-    background-color: white;
-    color: black;
+    background-color: #887BB0;
+    color: white;
     padding: 10px 15px;
     border: none;
     margin: 5px;
@@ -33,6 +44,7 @@ button {
     width: 200px;
     display: block;
     margin: auto;
+    font-weight: bold
 }
 
 .button-box {
@@ -42,5 +54,6 @@ button {
     width: 250px;
     text-align: center;
     border-radius: 10px;
-    background-color: white;
+    background-color: #887BB0;
+    border-color: white;
 }
