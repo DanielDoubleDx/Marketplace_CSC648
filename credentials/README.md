@@ -7,7 +7,7 @@
 
 # Below is a list of items required. Missing items will causes points to be deducted from multiple milestone submissions.
 
-1. Server URL or IP:
+1. Server URL or IP: 52.53.241.236
 2. SSH username
 3. SSH password or key.
    <br> If a ssh key is used please upload the key to the credentials folder.
@@ -24,4 +24,4 @@
 
 ## <strong>Failure to do so will result it points be deducted from milestone submissions.</strong><br>
 
-## You may store the most of the above in this README.md file. DO NOT Store the SSH key or any keys in this README.md file.
+## You may store the most of the above in this README.md file. DO NOT Store the SSH key or any keys in this REA
