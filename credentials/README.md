@@ -8,7 +8,7 @@
 # Below is a list of items required. Missing items will causes points to be deducted from multiple milestone submissions.
 
 1. Server URL or IP: 52.53.241.236
-2. SSH username
+2. SSH username: ubuntu
 3. SSH password or key.
    <br> If a ssh key is used please upload the key to the credentials folder.
 4. Database URL or IP: team4db.chiwcw6ou7k6.us-west-1.rds.amazonaws.com
