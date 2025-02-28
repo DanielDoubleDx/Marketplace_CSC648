@@ -7,7 +7,7 @@
 
 # Below is a list of items required. Missing items will causes points to be deducted from multiple milestone submissions.
 
-1. Server URL or IP: 52.53.241.236
+1. Server URL or IP: 54.193.111.61
 2. SSH username: ubuntu
 3. SSH password or key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKEgnj4R5U3oqqYldP1Xr5r7FmST2W3lZXqtjb/RREkR
    <br> If a ssh key is used please upload the key to the credentials folder.
