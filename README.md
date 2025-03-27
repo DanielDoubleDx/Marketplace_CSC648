@@ -16,7 +16,7 @@
 | Student Name      | School Email           | GitHub Username |
 |    :---:          |     :---:              |     :---:       |
 | Clark Batungbakal | cbatungbakal@sfsu.edu  | C1ark22         |
-| Thanh Duong       | tbuong7@sfsu.edu       | DanielDoubleDx  |
+| Thanh Duong       | tduong7@sfsu.edu       | DanielDoubleDx  |
 | Trinity Godwin    | cgodwin@mail.sfsu.edu  | CommNs          |
 | Daniel Lee        | dlee40@sfsu.edu        | danleepro108    |
 | Caleb Onuonga     | jonuonga@sfsu.edu      | calebsfsu       |
