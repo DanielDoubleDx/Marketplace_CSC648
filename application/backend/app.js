@@ -9,11 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Test route
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Backend is working!" });
-});
-
+// Database connection to AWS RDS
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -24,13 +20,19 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-// Databse connection to AWS RDS
-db.connector((err) => {
+// Simple connection test
+pool.getConnection((err, connection) => {
   if (err) {
     console.error("RDS connection failed:", err);
     return;
   }
   console.log("Connected to AWS RDS database");
+  connection.release();
+});
+
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is working!" });
 });
 
 // Database test route
@@ -45,9 +47,9 @@ app.get("/api/db-test", (req, res) => {
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
-  let { category, query } = req.query; // Extract query parameters
+  let { category, query } = req.query;
 
-  // Base SQL query - selects all listings and joins with categories
+  // Base SQL query
   let sql = `
   SELECT l.*, pc.categories as category_name
   FROM listings l
@@ -55,23 +57,23 @@ app.get("/api/search", (req, res) => {
   WHERE 1=1
   `;
 
-  const params = []; // Array to hold parameterized values
+  const params = [];
 
   // Add category filter if provided
   if (category && category !== "default") {
-    sql += ` AND l.categories = ?`; // Add condition to SQL
-    params.push(parseInt(category)); // Add value to params array
+    sql += ` AND l.categories = ?`;
+    params.push(parseInt(category));
   }
 
   // Add text search if provided
   if (query) {
     sql += ` AND (l.title LIKE ? OR l.product_desc LIKE ?)`;
-    params.push(`%${query}%`); // %wildcards% for partial matches
+    params.push(`%${query}%`);
     params.push(`%${query}%`);
   }
 
-  // Execute query with parameterized values
-  db.query(sql, params, (err, results) => {
+  // Execute query
+  pool.query(sql, params, (err, results) => {
     if (err) {
       console.error("Error executing search query:", err);
       return res.status(500).json({ error: "Database error" });
@@ -79,15 +81,10 @@ app.get("/api/search", (req, res) => {
 
     // Return results with count
     return res.status(200).json({
-      count: results.length, // Number of items found
-      items: results, // Array of matching listings
+      count: results.length,
+      items: results,
     });
   });
-});
-
-// Testing endpoint
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Backend is working!" });
 });
 
 // Starting the server
