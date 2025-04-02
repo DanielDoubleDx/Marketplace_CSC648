@@ -7,7 +7,7 @@ function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow mt-16 px-6 py-8">
+      <main className="flex-grow mt-24 px-6 py-8">
         <Outlet />
       </main>
       <Footer />
