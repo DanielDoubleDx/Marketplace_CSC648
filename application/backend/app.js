@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -85,6 +86,14 @@ app.get("/api/search", (req, res) => {
       items: results,
     });
   });
+});
+
+// Serve static files from the React frontend app
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// Anything that doesn't match the above, send back the index.html file
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
 // Starting the server
