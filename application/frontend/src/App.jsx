@@ -1,40 +1,25 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Member1 from "./pages/Member1";
-import Member2 from "./pages/Member2";
-import Member3 from "./pages/Member3";
-import Member4 from "./pages/Member4";
-import Member5 from "./pages/Member5";
-
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from './layouts/MainLayout';
+import Home from './pages/Home';
+import Products from './pages/Products';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
 function App() {
   return (
-    <Router>
-      <nav className="p-4 bg-gray-800 text-white flex gap-4">
-        <Link
-          to="/"
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-700 rounded-lg transition duration-300"
-        >
-          Home
-        </Link>
-        <Link
-          to="/about"
-          className="px-4 py-2 bg-green-500 hover:bg-green-700 rounded-lg transition duration-300"
-        >
-          About
-        </Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/member1" element={<Member1 />} />
-        <Route path="/member2" element={<Member2 />} />
-        <Route path="/member3" element={<Member3 />} />
-        <Route path="/member4" element={<Member4 />} />
-        <Route path="/member5" element={<Member5 />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<Home />} />
+        <Route path="products" element={<Products />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+        
+      </Route>
+    </Routes>
   );
 }
 
