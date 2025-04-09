@@ -15,7 +15,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -51,6 +51,7 @@ app.get("/api/search", (req, res) => {
   let { category, query } = req.query;
 
   // Base SQL query
+  // Combining title and description for search
   let sql = `
   SELECT l.*, pc.categories as category_name
   FROM listings l
@@ -66,14 +67,15 @@ app.get("/api/search", (req, res) => {
     params.push(parseInt(category));
   }
 
-  // Add text search if provided
+  // Add text search filter if provided, searchign title and description
   if (query) {
+    // Searching for term in both title and description
     sql += ` AND (l.title LIKE ? OR l.product_desc LIKE ?)`;
-    params.push(`%${query}%`);
-    params.push(`%${query}%`);
+    params.push(`%${query}%`); // Title Search
+    params.push(`%${query}%`); // Description Search
   }
 
-  // Execute query
+  // Execute query with parameterized values
   pool.query(sql, params, (err, results) => {
     if (err) {
       console.error("Error executing search query:", err);
@@ -100,4 +102,7 @@ app.get("*", (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Test API at: http://localhost:${PORT}/api/test`);
+  console.log(`Database test at: http://localhost:${PORT}/api/db-test`);
 });
