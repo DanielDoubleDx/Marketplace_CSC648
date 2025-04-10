@@ -102,7 +102,7 @@ function SearchBar() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search products..."
+                placeholder="Search"
                 className="w-full px-4 py-2 text-black focus:outline-none"
             />
 
