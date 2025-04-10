@@ -118,7 +118,7 @@ function SearchBar() {
             )}
 
             <button
-                className="bg-green-500 px-5 py-2 hover:bg-yellow-600"
+                className="bg-blue-500 px-5 py-2 hover:bg-yellow-600"
                 onClick={handleSearch}
             >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

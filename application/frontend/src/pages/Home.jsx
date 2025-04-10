@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import listings from '../data/listings.json';
 
+// Component hiệu ứng skeleton cho sản phẩm đang tải
 function ProductSkeleton() {
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
@@ -19,19 +19,29 @@ function Home() {
   const [searchResults, setSearchResults] = useState(null);
   const [searchTitle, setSearchTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [apiData, setApiData] = useState({ items: [], count: 0 });
 
-  const products = listings.slice(0, 12);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('http://13.52.231.140:3001/api/search');
+        const data = await response.json();
+        setApiData(data);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const products = apiData.items.slice(0, 12);
   const row1 = products.slice(0, 4);
   const row2 = products.slice(4, 8);
   const row3 = products.slice(8, 12);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const handleSearchEvent = (event) => {
@@ -78,7 +88,6 @@ function Home() {
 
   return (
     <div className="container mx-auto">
-      {/* Hero Banner */}
       {!searchResults && (
         <section className="relative h-[500px] rounded-lg overflow-hidden mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-700 opacity-90"></div>
@@ -89,7 +98,6 @@ function Home() {
         </section>
       )}
 
-      {/* Search Results Section */}
       {searchResults && (
         <section className="mt-20 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-white">{searchTitle}</h2>
@@ -105,10 +113,10 @@ function Home() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {searchResults.map((product) => (
-                <Link to={`/product/${product.id}`} key={product.id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
+                <Link to={`/product/${product.listing_id || product.id}`} key={product.listing_id || product.id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
                   <div className="aspect-square bg-gray-700">
                     <img
-                      src={`/images/${product.image}`}
+                      src={`/images/${product.thumbnail || product.image}`}
                       alt={product.title}
                       className="w-full h-full object-cover"
                     />
@@ -124,36 +132,38 @@ function Home() {
         </section>
       )}
 
-      {/* Products Sections */}
+      {!searchResults && !loading && (
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {row1.map((product) => (
+              <Link to={`/product/${product.listing_id}`} key={product.listing_id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
+                <div className="aspect-square bg-gray-700">
+                  <img
+                    src={`/images/${product.thumbnail}`}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold mb-1 text-white">{product.title}</h3>
+                  <p className="text-gray-400">${Number(product.price).toFixed(2)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {!searchResults && (
         <>
           <section className="mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {loading ? renderSkeletons(4) : row1.map((product) => (
-                <Link to={`/product/${product.id}`} key={product.id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
-                  <div className="aspect-square bg-gray-700">
-                    <img
-                      src={`/images/${product.image}`}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold mb-1 text-white">{product.title}</h3>
-                    <p className="text-gray-400">${Number(product.price).toFixed(2)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {loading ? renderSkeletons(4) : row2.map((product) => (
-                <Link to={`/product/${product.id}`} key={product.id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
+                <Link to={`/product/${product.listing_id}`} key={product.listing_id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
                   <div className="aspect-square bg-gray-700">
                     <img
-                      src={`/images/${product.image}`}
+                      src={`/images/${product.thumbnail}`}
                       alt={product.title}
                       className="w-full h-full object-cover"
                     />
@@ -170,10 +180,10 @@ function Home() {
           <section className="mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {loading ? renderSkeletons(4) : row3.map((product) => (
-                <Link to={`/product/${product.id}`} key={product.id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
+                <Link to={`/product/${product.listing_id}`} key={product.listing_id} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300">
                   <div className="aspect-square bg-gray-700">
                     <img
-                      src={`/images/${product.image}`}
+                      src={`/images/${product.thumbnail}`}
                       alt={product.title}
                       className="w-full h-full object-cover"
                     />
