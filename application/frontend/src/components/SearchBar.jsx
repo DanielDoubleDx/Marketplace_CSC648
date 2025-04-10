@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import listings from '../data/listings.json';
 
 function SearchBar() {
     const [category, setCategory] = useState("All");
@@ -9,6 +8,7 @@ function SearchBar() {
     const selectRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [apiListings, setApiListings] = useState([]);
 
     useEffect(() => {
         if (spanRef.current && selectRef.current) {
@@ -17,9 +17,9 @@ function SearchBar() {
         }
     }, [category]);
 
-    // Clear search results when navigating to a different page (except the Products page)
+    // Clear search results when navigating away from home
     useEffect(() => {
-        if (!location.pathname.includes('/products')) {
+        if (location.pathname !== '/') {
             clearSearch();
         }
     }, [location]);
@@ -31,37 +31,44 @@ function SearchBar() {
         setCategory('All');
     };
 
-    // Handle search and navigation
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                const response = await fetch('http://13.52.231.140:3001/api/search');
+                const data = await response.json();
+                setApiListings(data.items || []);
+            } catch (error) {
+                console.error('Error fetching listings:', error);
+            }
+        };
+        
+        fetchListings();
+    }, []);
+
+    // Handle search and navigate to home
     const handleSearch = () => {
+        if (!searchTerm.trim()) return;
+        
         const searchTermLower = searchTerm.toLowerCase();
-        const filteredProducts = listings.filter(product => {
-            const matchesCategory = category === "All" || product.category === category;
+        const filteredProducts = apiListings.filter(product => {
+            const matchesCategory = category === "All" || product.category_name === category;
 
-            // Search by full name
-            const matchesFullName = product.title.toLowerCase().includes(searchTermLower);
+            // Search by product name
+            const matchesName = product.title.toLowerCase().includes(searchTermLower);
 
-            // Search by initials
-            const productWords = product.title.split(' ');
-            const matchesInitials = productWords.some(word =>
-                word.toLowerCase().startsWith(searchTermLower)
-            );
-
-            // Search by each word in the product name
-            const searchWords = searchTermLower.split(' ');
-            const matchesWords = searchWords.every(searchWord =>
-                productWords.some(productWord =>
-                    productWord.toLowerCase().includes(searchWord)
-                )
-            );
-
-            return matchesCategory && (matchesFullName || matchesInitials || matchesWords);
+            return matchesCategory && matchesName;
         });
 
         // Save search results to localStorage
         localStorage.setItem('searchResults', JSON.stringify(filteredProducts));
-
-        // Navigate to the Products page with query parameters
-        navigate(`/products?search=${searchTerm}&category=${category}`);
+        
+        // Navigate to home with search parameters
+        navigate(`/?search=${searchTerm}&category=${category}`);
+        
+        // Dispatch custom event for search completion
+        window.dispatchEvent(new CustomEvent('searchCompleted', { 
+            detail: { results: filteredProducts } 
+        }));
     };
 
     // Handle Enter key press
@@ -95,7 +102,7 @@ function SearchBar() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search..."
+                placeholder="Search products..."
                 className="w-full px-4 py-2 text-black focus:outline-none"
             />
 
