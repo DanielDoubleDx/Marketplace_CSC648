@@ -139,7 +139,7 @@ function ProductDetail() {
         {/* Message Seller Form */}
         <div className="mb-4">
           <div className="flex items-center mb-2">
-            <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
             </svg>
@@ -155,7 +155,7 @@ function ProductDetail() {
             />
             <button 
               type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-r-lg hover:bg-blue-700 transition duration-300"
+              className="bg-green-500 text-white px-6 py-3 rounded-r-lg hover:bg-green-600 transition duration-300"
             >
               Send
             </button>
@@ -209,7 +209,7 @@ function ProductDetail() {
       <div className="bg-gray-800 p-6 rounded-lg mb-4">
         <div className="flex justify-between mb-4">
           <h2 className="text-xl font-bold">Seller Information</h2>
-          <Link to="#" className="text-blue-500">Seller Details</Link>
+          <Link to="#" className="text-green-500">Seller Details</Link>
         </div>
         <div className="flex items-center">
           <div className="w-12 h-12 bg-gray-600 rounded-full mr-4"></div>
