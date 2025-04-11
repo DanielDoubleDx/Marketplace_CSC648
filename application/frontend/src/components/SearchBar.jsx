@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 function SearchBar() {
     const [category, setCategory] = useState("All");
+    const [categories, setCategories] = useState(["All"]);
     const [searchTerm, setSearchTerm] = useState("");
     const spanRef = useRef(null);
     const selectRef = useRef(null);
@@ -17,14 +18,12 @@ function SearchBar() {
         }
     }, [category]);
 
-    // Clear search results when navigating away from home
     useEffect(() => {
         if (location.pathname !== '/') {
             clearSearch();
         }
     }, [location]);
 
-    // Function to clear search results
     const clearSearch = () => {
         localStorage.removeItem('searchResults');
         setSearchTerm('');
@@ -36,42 +35,36 @@ function SearchBar() {
             try {
                 const response = await fetch('http://13.52.231.140:3001/api/search');
                 const data = await response.json();
-                setApiListings(data.items || []);
+                const items = data.items || [];
+                setApiListings(items);
+
+                const apiCategories = [...new Set(items.map(item => item.category_name))];
+                setCategories(["All", ...apiCategories]);
             } catch (error) {
                 console.error('Error fetching listings:', error);
             }
         };
-        
+
         fetchListings();
     }, []);
 
-    // Handle search and navigate to home
     const handleSearch = () => {
-        if (!searchTerm.trim()) return;
-        
+        if (!searchTerm.trim() && category === "All") return;
+
         const searchTermLower = searchTerm.toLowerCase();
         const filteredProducts = apiListings.filter(product => {
             const matchesCategory = category === "All" || product.category_name === category;
-
-            // Search by product name
             const matchesName = product.title.toLowerCase().includes(searchTermLower);
-
             return matchesCategory && matchesName;
         });
 
-        // Save search results to localStorage
         localStorage.setItem('searchResults', JSON.stringify(filteredProducts));
-        
-        // Navigate to home with search parameters
         navigate(`/?search=${searchTerm}&category=${category}`);
-        
-        // Dispatch custom event for search completion
-        window.dispatchEvent(new CustomEvent('searchCompleted', { 
-            detail: { results: filteredProducts } 
+        window.dispatchEvent(new CustomEvent('searchCompleted', {
+            detail: { results: filteredProducts }
         }));
     };
 
-    // Handle Enter key press
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             handleSearch();
@@ -79,22 +72,34 @@ function SearchBar() {
     };
 
     return (
-        <div className="flex flex-grow max-w-3xl mx-6 bg-white rounded-lg overflow-hidden border border-gray-300">
+        <div className="flex flex-grow max-w-3xl mx-6 bg-gray-800 rounded-lg overflow-hidden border border-gray-700 search-bar-container">
             <span ref={spanRef} className="absolute invisible whitespace-nowrap px-2">
                 {category}
             </span>
             <select
                 ref={selectRef}
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="bg-gray-200 text-gray-700 text-sm px-3 py-2 border-r border-gray-300 focus:outline-none transition-all"
+                onChange={(e) => {
+                    const selectedCategory = e.target.value;
+                    setCategory(selectedCategory);
+
+                    const filtered = selectedCategory === "All"
+                        ? apiListings
+                        : apiListings.filter(product => product.category_name === selectedCategory);
+
+                    localStorage.setItem('searchResults', JSON.stringify(filtered));
+                    navigate(`/?category=${selectedCategory}`);
+                    window.dispatchEvent(new CustomEvent('searchCompleted', {
+                        detail: { results: filtered }
+                    }));
+                }}
+                className="bg-gray-700 text-white text-sm px-3 py-2 border-r border-gray-600 focus:outline-none transition-all"
             >
-                <option>All</option>
-                <option>Electronics</option>
-                <option>Books</option>
-                <option>Fashion</option>
-                <option>Home & Kitchen</option>
-                <option>Computers & Accessories</option>
+                {categories.map(cat => (
+                    <option key={cat} value={cat} className="bg-gray-800">
+                        {cat}
+                    </option>
+                ))}
             </select>
 
             <input
@@ -103,22 +108,22 @@ function SearchBar() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Search"
-                className="w-full px-4 py-2 text-black focus:outline-none"
+                className="w-full px-4 py-2 bg-gray-700 text-white focus:outline-none placeholder-gray-400"
             />
 
             {searchTerm && (
                 <button
-                    className="bg-gray-200 px-3 hover:bg-gray-300"
+                    className="bg-gray-600 px-3 hover:bg-gray-500 clear-button"f
                     onClick={clearSearch}
                 >
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             )}
 
             <button
-                className="bg-blue-500 px-5 py-2 hover:bg-yellow-600"
+                className="bg-green-500 px-5 py-2 hover:bg-green-600 search-button"
                 onClick={handleSearch}
             >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
