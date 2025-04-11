@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-// Component skeleton effect
+// Component to render a loading skeleton for product cards
 function ProductSkeleton() {
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
@@ -21,6 +21,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [apiData, setApiData] = useState({ items: [], count: 0 });
 
+  // Fetch data from API on initial load
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -38,6 +39,7 @@ function Home() {
     fetchData();
   }, []);
 
+  // Slice first 12 products into three rows for grid display
   const products = apiData.items.slice(0, 12);
   const row1 = products.slice(0, 4);
   const row2 = products.slice(4, 8);
@@ -59,6 +61,7 @@ function Home() {
     };
   }, []);
 
+  // React to URL query params
   useEffect(() => {
     const search = searchParams.get('search');
     const category = searchParams.get('category');

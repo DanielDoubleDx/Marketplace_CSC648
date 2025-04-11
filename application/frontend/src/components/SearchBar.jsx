@@ -18,18 +18,21 @@ function SearchBar() {
         }
     }, [category]);
 
+    // Clear search results when navigating away from home
     useEffect(() => {
         if (location.pathname !== '/') {
             clearSearch();
         }
     }, [location]);
 
+    // Function to clear search results
     const clearSearch = () => {
         localStorage.removeItem('searchResults');
         setSearchTerm('');
         setCategory('All');
     };
 
+    // Fetch listings and extract category options from API
     useEffect(() => {
         const fetchListings = async () => {
             try {
@@ -48,6 +51,7 @@ function SearchBar() {
         fetchListings();
     }, []);
 
+    // Handle search and navigate to home
     const handleSearch = () => {
         const searchTermLower = searchTerm.toLowerCase();
 
@@ -64,6 +68,7 @@ function SearchBar() {
         }));
     };
 
+    // Handle Enter key press
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             handleSearch();
