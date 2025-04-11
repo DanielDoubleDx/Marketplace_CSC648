@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-// Component hiệu ứng skeleton cho sản phẩm đang tải
+// Component skeleton effect
 function ProductSkeleton() {
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
@@ -54,7 +54,6 @@ function Home() {
     };
 
     window.addEventListener('searchCompleted', handleSearchEvent);
-
     return () => {
       window.removeEventListener('searchCompleted', handleSearchEvent);
     };

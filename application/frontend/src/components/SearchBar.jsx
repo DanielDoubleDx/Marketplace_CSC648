@@ -49,9 +49,8 @@ function SearchBar() {
     }, []);
 
     const handleSearch = () => {
-        if (!searchTerm.trim() && category === "All") return;
-
         const searchTermLower = searchTerm.toLowerCase();
+
         const filteredProducts = apiListings.filter(product => {
             const matchesCategory = category === "All" || product.category_name === category;
             const matchesName = product.title.toLowerCase().includes(searchTermLower);
@@ -83,12 +82,15 @@ function SearchBar() {
                     const selectedCategory = e.target.value;
                     setCategory(selectedCategory);
 
-                    const filtered = selectedCategory === "All"
-                        ? apiListings
-                        : apiListings.filter(product => product.category_name === selectedCategory);
+                    const searchTermLower = searchTerm.toLowerCase();
+                    const filtered = apiListings.filter(product => {
+                        const matchesCategory = selectedCategory === "All" || product.category_name === selectedCategory;
+                        const matchesName = product.title.toLowerCase().includes(searchTermLower);
+                        return matchesCategory && matchesName;
+                    });
 
                     localStorage.setItem('searchResults', JSON.stringify(filtered));
-                    navigate(`/?category=${selectedCategory}`);
+                    navigate(`/?search=${searchTerm}&category=${selectedCategory}`);
                     window.dispatchEvent(new CustomEvent('searchCompleted', {
                         detail: { results: filtered }
                     }));
@@ -113,7 +115,7 @@ function SearchBar() {
 
             {searchTerm && (
                 <button
-                    className="bg-gray-600 px-3 hover:bg-gray-500 clear-button"f
+                    className="bg-gray-600 px-3 hover:bg-gray-500 clear-button"
                     onClick={clearSearch}
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
