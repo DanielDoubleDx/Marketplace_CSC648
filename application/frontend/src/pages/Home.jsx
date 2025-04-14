@@ -40,7 +40,7 @@ function Home() {
   }, []);
 
   // Slice first 12 products into three rows for grid display
-  const products = apiData.items.slice(0, 12);
+  const products = Array.isArray(apiData.items) ? apiData.items.slice(0, 12) : [];
   const row1 = products.slice(0, 4);
   const row2 = products.slice(4, 8);
   const row3 = products.slice(8, 12);
@@ -82,6 +82,7 @@ function Home() {
     }
   }, [searchParams]);
 
+  // Render placeholder skeletons during loading
   const renderSkeletons = (count) => {
     return Array(count).fill(0).map((_, index) => (
       <ProductSkeleton key={index} />
