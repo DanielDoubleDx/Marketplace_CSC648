@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-// Component hiển thị skeleton loading của chi tiết sản phẩm
+// Component skeleton loading of products
 function ProductDetailSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8 text-white animate-pulse">
@@ -71,21 +71,21 @@ function ProductDetail() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     setLoading(true);
     setError(null);
-    
+
     const fetchProductDetail = async () => {
       try {
         console.log('Fetching data from API...');
         const response = await fetch('http://13.52.231.140:3001/api/search');
         const data = await response.json();
         console.log('API Response:', data);
-        
+
         const foundProduct = data.items.find(p => p.listing_id === parseInt(id));
         console.log('Found product:', foundProduct);
-        
+
         setProduct(foundProduct);
       } catch (error) {
         console.error('Error fetching product details:', error);
@@ -94,7 +94,7 @@ function ProductDetail() {
         setLoading(false);
       }
     };
-    
+
     fetchProductDetail();
   }, [id]);
 
@@ -153,7 +153,7 @@ function ProductDetail() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
-            <button 
+            <button
               type="submit"
               className="bg-green-500 text-white px-6 py-3 rounded-r-lg hover:bg-green-600 transition duration-300"
             >
@@ -209,7 +209,10 @@ function ProductDetail() {
       <div className="bg-gray-800 p-6 rounded-lg mb-4">
         <div className="flex justify-between mb-4">
           <h2 className="text-xl font-bold">Seller Information</h2>
-          <Link to="#" className="text-green-500">Seller Details</Link>
+          <Link to={`/seller/${product.seller_id}`} className="text-green-500 hover:underline">
+            Seller details
+          </Link>
+
         </div>
         <div className="flex items-center">
           <div className="w-12 h-12 bg-gray-600 rounded-full mr-4"></div>

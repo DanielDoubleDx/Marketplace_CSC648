@@ -11,6 +11,7 @@ import MainLayout from './layouts/MainLayout';
 import ProductDetail from './pages/ProductDetail';
 import Messaging from './pages/Message';
 import Posting from './pages/Posting';
+import SellerDetail from './pages/SellerDetail';
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "product/:id", element: <ProductDetail /> },
       { path: "message", element: <Messaging /> },
       { path: "posting", element: <Posting /> },
+      { path: "seller", element: <SellerDetail /> },
     ]
   }
 ]);
