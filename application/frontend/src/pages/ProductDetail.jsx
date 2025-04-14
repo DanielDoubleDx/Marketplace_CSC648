@@ -209,7 +209,7 @@ function ProductDetail() {
       <div className="bg-gray-800 p-6 rounded-lg mb-4">
         <div className="flex justify-between mb-4">
           <h2 className="text-xl font-bold">Seller Information</h2>
-          <Link to={`/seller/${product.seller_id}`} className="text-green-500 hover:underline">
+          <Link to={`/seller`} className="text-green-500 hover:underline">
             Seller details
           </Link>
 

@@ -6,12 +6,11 @@ function SellerDetail() {
       {/* Avatar Section */}
       <div className="bg-gray-800 p-6 rounded-lg flex items-center space-x-6">
         <img
-          src="/images/avatar-placeholder.png"
           alt="Seller Avatar"
           className="w-24 h-24 rounded-full object-cover"
         />
         <div>
-          <h2 className="text-2xl font-bold">Jane Doe</h2>
+          <h2 className="text-2xl font-bold">Name</h2>
         </div>
       </div>
 
@@ -34,13 +33,13 @@ function SellerDetail() {
               <path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.562-.954L10 0l2.95 5.956 6.562.954-4.756 4.635 1.122 6.545z" />
             </svg>
           ))}
-          <span className="text-gray-400 ml-2">(4.5)</span>
+          <span className="text-gray-400 ml-2">(5)</span>
         </div>
       </div>
 
       {/* Listings Section */}
       <div className="bg-gray-800 p-6 rounded-lg">
-        <h3 className="text-xl font-semibold mb-4">Listings by Jane Doe</h3>
+        <h3 className="text-xl font-semibold mb-4">Listings</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((id) => (
             <div
