@@ -3,91 +3,91 @@ import { Link } from 'react-router-dom';
 
 function Register() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">Registration</h2>
+    <div className="container mx-auto">
+      <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
+        <h2 className="text-3xl font-bold text-center text-white mb-8">Register</h2>
 
-        <form className="space-y-4">
+        <form className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="fullName">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="fullName">
               Full Name
             </label>
             <input
               id="fullName"
               name="fullName"
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
               Email
             </label>
             <input
               id="email"
               name="email"
               type="email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your email"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="username">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="username">
               Username
             </label>
             <input
               id="username"
               name="username"
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your username"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="password">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="password">
               Password
             </label>
             <input
               id="password"
               name="password"
               type="password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your password"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="confirmPassword">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="confirmPassword">
               Confirm Password
             </label>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Confirm your password"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-300 mt-6"
+            className="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-300"
           >
             Register
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-400">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:text-blue-500">
+          <Link to="/login" className="text-green-500 hover:text-green-600">
             Login here
           </Link>
         </p>
-      </div>
+      </section>
     </div>
   );
 }
