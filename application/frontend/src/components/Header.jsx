@@ -19,6 +19,7 @@ function Header() {
             <Link to="/" className="hover:text-yellow-400">Home</Link>
             <Link to="/about" className="hover:text-yellow-400">About</Link>
             <Link to="/contact" className="hover:text-yellow-400">Contact</Link>
+            <Link to="/message" className="hover:text-yellow-400">Message</Link>
           </nav>
         </div>
 
@@ -27,11 +28,21 @@ function Header() {
 
         {/* Icons and Cart */}
         <div className="flex items-center space-x-4">
-          <button className="hover:text-yellow-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          <Link to="/posting" className="hover:text-yellow-400" title="Post Listing">
+            <svg
+              className="w-7 h-7"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
-          </button>
+          </Link>
 
           {/* Login Button */}
           <Link to="/login" className="hover:text-yellow-400">

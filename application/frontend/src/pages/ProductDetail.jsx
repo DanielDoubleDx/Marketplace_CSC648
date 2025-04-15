@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 
-// Component hiển thị skeleton loading của chi tiết sản phẩm
+// Component skeleton loading of products
 function ProductDetailSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8 text-white animate-pulse">
@@ -86,6 +86,10 @@ function ProductDetail() {
         const foundProduct = data.items.find(
           (p) => p.listing_id === parseInt(id)
         );
+        console.log("Found product:", foundProduct);
+
+        console.log("API Response:", data);
+
         console.log("Found product:", foundProduct);
 
         setProduct(foundProduct);
@@ -264,6 +268,9 @@ function ProductDetail() {
           <h2 className="text-xl font-bold">Seller Information</h2>
           <Link to="#" className="text-green-500">
             Seller Details
+          </Link>
+          <Link to={`/seller`} className="text-green-500 hover:underline">
+            Seller details
           </Link>
         </div>
         <div className="flex items-center">

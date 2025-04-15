@@ -86,6 +86,7 @@ function Home() {
     }
   }, [searchParams]);
 
+  // Render placeholder skeletons during loading
   const renderSkeletons = (count) => {
     return Array(count)
       .fill(0)
