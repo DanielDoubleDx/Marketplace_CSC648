@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
+const multer = require("multer")
 const path = require("path");
+const fs = require('fs');
 require("dotenv").config();
 
 const app = express();
@@ -45,6 +47,60 @@ app.get("/api/db-test", (req, res) => {
     res.json({ message: "Database connected!", results });
   });
 });
+
+app.get("/api/listings/:id/thumbnail", (req, res) => {
+  const listingId = parseInt(req.params.id);
+
+});
+
+app.get("/api/listings/:id/img", (req, res) => {
+  const listingId = parseInt(req.params.id);
+
+});
+
+
+app.put("/api/listings/:id/img", upload.single("image"), (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const dirPath = path.join(__dirname, `img/${listingId}/`);
+  const listingImgPath = path.join(dirPath, "image.png");
+  const listingThumbPath = path.join(dirPath, "thumbnail.png");
+
+  // create director
+  fs.mkdir(directoryPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error('An error occurred:', err);
+  }});
+  // write img to listingImgPath
+  fs.writeFile(listingImgPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+  // write thumnnail to listingImgPath
+  // TODO resize img before saving as thumbnail
+  fs.writeFile(listingThumbPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+
+  // write img path to database 
+  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
+  pool.query(sql, [listingImgPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing image updated successfully" });
+  });
+  // write thumbnail path to database 
+  sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
+  pool.query(sql, [listingThumbPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing image updated successfully" });
+  });
+});
+
+
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
