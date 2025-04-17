@@ -121,7 +121,7 @@ app.put("/api/listings/:id/img", upload.single("image"), (req, res) => {
   pool.query(sql, [listingThumbPath, listingId], (err, result) => {
     if (err) return res.status(500).json({ error: "Database error" });
     if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-    res.json({ message: "Listing image updated successfully" });
+    res.json({ message: "Listing thumbnail updated successfully" });
   });
 });
 
