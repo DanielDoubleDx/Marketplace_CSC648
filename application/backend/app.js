@@ -7,6 +7,8 @@ const fs = require('fs');
 require("dotenv").config();
 
 const app = express();
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Middleware
 app.use(cors());
