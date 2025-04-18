@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-// Component to render a loading skeleton for product cards
+// Loading Skeleton Component
 function ProductSkeleton() {
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
@@ -21,12 +21,13 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [apiData, setApiData] = useState({ items: [], count: 0 });
 
-  // Fetch data from API on initial load
+  const API_BASE = "http://13.52.231.140:3001";
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://13.52.231.140:3001/api/search");
+        const response = await fetch(`${API_BASE}/api/search`);
         const data = await response.json();
         setApiData(data);
       } catch (error) {
@@ -56,9 +57,7 @@ function Home() {
     };
 
     window.addEventListener("searchCompleted", handleSearchEvent);
-    return () => {
-      window.removeEventListener("searchCompleted", handleSearchEvent);
-    };
+    return () => window.removeEventListener("searchCompleted", handleSearchEvent);
   }, []);
 
   // React to URL query params
@@ -72,11 +71,7 @@ function Home() {
         const savedResults = JSON.parse(localStorage.getItem("searchResults"));
         if (savedResults) {
           setSearchResults(savedResults);
-          setSearchTitle(
-            `Search Results: "${search}" ${
-              category !== "All" ? `- ${category}` : ""
-            }`
-          );
+          setSearchTitle(`Search Results: "${search}" ${category !== "All" ? `- ${category}` : ""}`);
         }
         setLoading(false);
       }, 800);
@@ -86,11 +81,31 @@ function Home() {
     }
   }, [searchParams]);
 
-  // Render placeholder skeletons during loading
-  const renderSkeletons = (count) => {
-    return Array(count)
-      .fill(0)
-      .map((_, index) => <ProductSkeleton key={index} />);
+  const renderSkeletons = (count) => Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
+
+  const renderProductCard = (product) => {
+    const id = product.listing_id || product.id;
+    const imageUrl = `${API_BASE}/api/listings/${id}/thumbnail`;
+
+    return (
+      <Link
+        to={`/product/${id}`}
+        key={id}
+        className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300"
+      >
+        <div className="aspect-square bg-gray-700">
+          <img
+            src={imageUrl}
+            alt={product.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="font-semibold mb-1 text-white">{product.title}</h3>
+          <p className="text-gray-400">${Number(product.price).toFixed(2)}</p>
+        </div>
+      </Link>
+    );
   };
 
   return (
@@ -103,8 +118,7 @@ function Home() {
               San Francisco State University Market
             </h1>
             <p className="text-xl mb-8">
-              Your trusted online shopping destination for quality products and
-              excellent service.
+              Your trusted online shopping destination for quality products and excellent service.
             </p>
           </div>
         </section>
@@ -124,124 +138,30 @@ function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {searchResults.map((product) => (
-                <Link
-                  to={`/product/${product.listing_id || product.id}`}
-                  key={product.listing_id || product.id}
-                  className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300"
-                >
-                  <div className="aspect-square bg-gray-700">
-                    <img
-                      src={`/images/${product.thumbnail || product.image}`}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold mb-1 text-white">
-                      {product.title}
-                    </h3>
-                    <p className="text-gray-400">
-                      ${Number(product.price).toFixed(2)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+              {searchResults.map(renderProductCard)}
             </div>
           )}
         </section>
       )}
 
       {!searchResults && !loading && (
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {row1.map((product) => (
-              <Link
-                to={`/product/${product.listing_id}`}
-                key={product.listing_id}
-                className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300"
-              >
-                <div className="aspect-square bg-gray-700">
-                  <img
-                    src={`/images/${product.thumbnail}`}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold mb-1 text-white">
-                    {product.title}
-                  </h3>
-                  <p className="text-gray-400">
-                    ${Number(product.price).toFixed(2)}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!searchResults && (
         <>
-          <section className="mb-8">
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {loading
-                ? renderSkeletons(4)
-                : row2.map((product) => (
-                    <Link
-                      to={`/product/${product.listing_id}`}
-                      key={product.listing_id}
-                      className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300"
-                    >
-                      <div className="aspect-square bg-gray-700">
-                        <img
-                          src={`/images/${product.thumbnail}`}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold mb-1 text-white">
-                          {product.title}
-                        </h3>
-                        <p className="text-gray-400">
-                          ${Number(product.price).toFixed(2)}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+              {row1.map(renderProductCard)}
             </div>
           </section>
 
           <section className="mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {loading
-                ? renderSkeletons(4)
-                : row3.map((product) => (
-                    <Link
-                      to={`/product/${product.listing_id}`}
-                      key={product.listing_id}
-                      className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition duration-300"
-                    >
-                      <div className="aspect-square bg-gray-700">
-                        <img
-                          src={`/images/${product.thumbnail}`}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold mb-1 text-white">
-                          {product.title}
-                        </h3>
-                        <p className="text-gray-400">
-                          ${Number(product.price).toFixed(2)}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+              {loading ? renderSkeletons(4) : row2.map(renderProductCard)}
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {loading ? renderSkeletons(4) : row3.map(renderProductCard)}
             </div>
           </section>
         </>
