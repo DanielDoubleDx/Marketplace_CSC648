@@ -20,7 +20,48 @@ const Message = () => {
             <div className="flex flex-col flex-1 p-6">
 
                 {/* Chat display area */}
-                <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto">
+                <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto space-y-4">
+                    {/* Buyer Message */}
+                    <div className="flex justify-start">
+                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
+                            Hi! I saw your listing for the iPad Pro. Is it still available?
+                        </div>
+                    </div>
+
+                    {/* Seller Message */}
+                    <div className="flex justify-end">
+                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
+                            Hey! Yep, it's still available. It's in great condition.
+                        </div>
+                    </div>
+
+                    {/* Buyer Message */}
+                    <div className="flex justify-start">
+                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
+                            Awesome. Are you flexible on the price?
+                        </div>
+                    </div>
+
+                    {/* Seller Message */}
+                    <div className="flex justify-end">
+                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
+                            I can knock off $30 if you're ready to buy it this week.
+                        </div>
+                    </div>
+
+                    {/* Buyer Message */}
+                    <div className="flex justify-start">
+                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
+                            Deal! Can we meet on campus tomorrow around noon?
+                        </div>
+                    </div>
+
+                    {/* Seller Message */}
+                    <div className="flex justify-end">
+                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
+                            Sounds good! Let's meet at the student center at 12.
+                        </div>
+                    </div>
                 </div>
 
                 {/* Input and Send */}
