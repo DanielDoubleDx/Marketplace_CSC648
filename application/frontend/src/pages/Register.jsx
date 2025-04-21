@@ -49,7 +49,7 @@ function Register() {
               id="fullName"
               name="fullName"
               type="text"
-              value={formData.email}
+              value={formData.fullName}
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your name"
@@ -64,7 +64,7 @@ function Register() {
               id="email"
               name="email"
               type="email"
-              value={formData.username}
+              value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your email"
@@ -79,7 +79,7 @@ function Register() {
               id="username"
               name="username"
               type="text"
-              value={formData.password}
+              value={formData.username}
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your username"
@@ -95,7 +95,7 @@ function Register() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                value={formData.confirmPassword}
+                value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
                 placeholder="Enter your password"
