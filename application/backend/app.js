@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const app = express();
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
@@ -33,6 +33,47 @@ pool.getConnection((err, connection) => {
   }
   console.log("Connected to AWS RDS database");
   connection.release();
+});
+
+app.post("/api/listings/:id/upload", upload.single("image"), (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const dirPath = path.join(__dirname, `/img/${listingId}/`);
+  const listingImgPath = path.join(dirPath, "image.png");
+  const listingThumbPath = path.join(dirPath, "thumbnail.png");
+
+  // create director
+  fs.mkdir(dirPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error('An error occurred:', err);
+  }});
+  // write img to listingImgPath
+  fs.writeFile(listingImgPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+  // write thumnnail to listingImgPath
+  // TODO resize img before saving as thumbnail
+  fs.writeFile(listingThumbPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+
+  // write img path to database 
+  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
+  pool.query(sql, [listingImgPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing image updated successfully" });
+  });
+  // write thumbnail path to database 
+  sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
+  pool.query(sql, [listingThumbPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing thumbnail updated successfully" });
+  });
 });
 
 // Test route
@@ -81,47 +122,6 @@ app.get("/api/listings/:id/img", (req, res) => {
     // Magic, come back to later for debugging
     imgPath = results[0].listing_img;
     res.sendFile(imgPath);
-  });
-});
-
-app.put("/api/listings/:id/img", upload.single("image"), (req, res) => {
-  const listingId = parseInt(req.params.id);
-  const dirPath = path.join(__dirname, `img/${listingId}/`);
-  const listingImgPath = path.join(dirPath, "image.png");
-  const listingThumbPath = path.join(dirPath, "thumbnail.png");
-
-  // create director
-  fs.mkdir(dirPath, { recursive: true }, (err) => {
-    if (err) {
-      console.error('An error occurred:', err);
-  }});
-  // write img to listingImgPath
-  fs.writeFile(listingImgPath, req.file.buffer, (err) => {
-    if (err) {
-      console.error("Error saving file:", err);
-      return res.status(500).json({ error: "File system error" });
-  }});
-  // write thumnnail to listingImgPath
-  // TODO resize img before saving as thumbnail
-  fs.writeFile(listingThumbPath, req.file.buffer, (err) => {
-    if (err) {
-      console.error("Error saving file:", err);
-      return res.status(500).json({ error: "File system error" });
-  }});
-
-  // write img path to database 
-  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
-  pool.query(sql, [listingImgPath, listingId], (err, result) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-    res.json({ message: "Listing image updated successfully" });
-  });
-  // write thumbnail path to database 
-  sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
-  pool.query(sql, [listingThumbPath, listingId], (err, result) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-    res.json({ message: "Listing thumbnail updated successfully" });
   });
 });
 
