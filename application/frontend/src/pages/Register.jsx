@@ -2,6 +2,36 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function Register() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  
+    // Simple validation
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+  
+    // Submit logic (replace this with actual backend request)
+    console.log("Registering user with data:", formData);
+  };
+  
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -19,6 +49,8 @@ function Register() {
               id="fullName"
               name="fullName"
               type="text"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your name"
             />
@@ -32,6 +64,8 @@ function Register() {
               id="email"
               name="email"
               type="email"
+              value={formData.username}
+              onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your email"
             />
@@ -45,6 +79,8 @@ function Register() {
               id="username"
               name="username"
               type="text"
+              value={formData.password}
+              onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your username"
             />
@@ -59,6 +95,8 @@ function Register() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
                 placeholder="Enter your password"
               />
