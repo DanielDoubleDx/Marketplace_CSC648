@@ -3,30 +3,29 @@ import { Link } from 'react-router-dom';
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">Login</h2>
-        <div className="relative my-6">
-        </div>
+    <div className="container mx-auto">
+      <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
+        <h2 className="text-3xl font-bold text-center text-white mb-8">Login</h2>
 
         {/* Login Form */}
         <form className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
               Email or Phone
             </label>
             <input
               id="email"
               name="email"
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
               placeholder="Enter your email or phone"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="password">
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="password">
               Password
             </label>
             <div className="relative">
@@ -34,12 +33,12 @@ function Login() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-50 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
                 placeholder="Enter your password"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -62,14 +61,14 @@ function Login() {
                 id="remember"
                 name="remember"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 border-gray-300 rounded"
               />
-              <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="remember" className="ml-2 block text-sm text-white">
                 Remember me
               </label>
             </div>
             <div className="text-sm">
-              <Link to="/forgot-password" className="text-blue-600 hover:text-blue-500">
+              <Link to="/forgot-password" className="text-green-500 hover:text-green-600">
                 Forgot password?
               </Link>
             </div>
@@ -77,19 +76,19 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-300"
+            className="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-300"
           >
             Login
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-400">
           Not a member?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-500">
-            Signup now
+          <Link to="/register" className="text-green-500 hover:text-green-600">
+            Sign up now
           </Link>
         </p>
-      </div>
+      </section>
     </div>
   );
 }

@@ -1,10 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
+const multer = require("multer")
 const path = require("path");
+const fs = require('fs');
 require("dotenv").config();
 
 const app = express();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
@@ -31,6 +35,47 @@ pool.getConnection((err, connection) => {
   connection.release();
 });
 
+app.post("/api/listings/:id/upload", upload.single("image"), (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const dirPath = path.join(__dirname, `/img/${listingId}/`);
+  const listingImgPath = path.join(dirPath, "image.png");
+  const listingThumbPath = path.join(dirPath, "thumbnail.png");
+
+  // create director
+  fs.mkdir(dirPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error('An error occurred:', err);
+  }});
+  // write img to listingImgPath
+  fs.writeFile(listingImgPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+  // write thumnnail to listingImgPath
+  // TODO resize img before saving as thumbnail
+  fs.writeFile(listingThumbPath, req.file.buffer, (err) => {
+    if (err) {
+      console.error("Error saving file:", err);
+      return res.status(500).json({ error: "File system error" });
+  }});
+
+  // write img path to database 
+  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
+  pool.query(sql, [listingImgPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing image updated successfully" });
+  });
+  // write thumbnail path to database 
+  sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
+  pool.query(sql, [listingThumbPath, listingId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
+    res.json({ message: "Listing thumbnail updated successfully" });
+  });
+});
+
 // Test route
 app.get("/api/test", (req, res) => {
   res.json({ message: "Backend is working!" });
@@ -45,6 +90,42 @@ app.get("/api/db-test", (req, res) => {
     res.json({ message: "Database connected!", results });
   });
 });
+
+app.get("/api/listings/:id/thumbnail", (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const sql = "SELECT thumbnail FROM listings WHERE id = ?";
+  pool.query(sql, [listingId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+    // Magic, come back to later for debugging
+    thumbPath = results[0].thumbnail;
+    res.sendFile(thumbPath);
+  });
+});
+
+app.get("/api/listings/:id/img", (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const sql = "SELECT listing_img FROM listings WHERE id = ?";
+  pool.query(sql, [listingId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+    // Magic, come back to later for debugging
+    imgPath = results[0].listing_img;
+    res.sendFile(imgPath);
+  });
+});
+
+
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
