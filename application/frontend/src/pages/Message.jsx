@@ -1,6 +1,38 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+
+const allMessages = [
+    // Need to fetch from an API later (hardcode right now)
+    ...Array.from({ length: 200 }).map((_, i) => ({
+        id: i + 1,
+        text: i % 2 === 0
+            ? `Buyer message #${i + 1}`
+            : `Seller message #${i + 1}`,
+        sender: i % 2 === 0 ? 'buyer' : 'seller',
+    })),
+];
 
 const Message = () => {
+    const bottomRef = useRef(null);
+    const scrollRef = useRef(null);
+    const [showScrollButton, setShowScrollButton] = useState(false);
+
+    useEffect(() => {
+        // Scroll to latest on load
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+    }, []);
+
+    const handleScroll = () => {
+        const container = scrollRef.current;
+        if (!container) return;
+
+        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+        setShowScrollButton(!isAtBottom);
+    };
+
+    const scrollToBottom = () => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     return (
         <div className="flex h-screen bg-gray-900 text-white">
 
@@ -17,55 +49,37 @@ const Message = () => {
             </div>
 
             {/* Main chat area */}
-            <div className="flex flex-col flex-1 p-6">
+            <div className="flex flex-col flex-1 p-6 relative">
 
-                {/* Chat display area */}
-                <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto space-y-4">
-                    {/* Buyer Message */}
-                    <div className="flex justify-start">
-                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
-                            Hi! I saw your listing for the iPad Pro. Is it still available?
+                {/* Chatbox */}
+                <div
+                    ref={scrollRef}
+                    onScroll={handleScroll}
+                    className="flex-1 bg-gray-800 rounded-lg p-4 overflow-y-auto space-y-4"
+                >
+                    {allMessages.map((msg) => (
+                        <div key={msg.id} className={`flex ${msg.sender === 'buyer' ? 'justify-start' : 'justify-end'}`}>
+                            <div className={`${msg.sender === 'buyer' ? 'bg-gray-700' : 'bg-green-600'} p-3 rounded-lg max-w-md`}>
+                                {msg.text}
+                            </div>
                         </div>
-                    </div>
-
-                    {/* Seller Message */}
-                    <div className="flex justify-end">
-                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
-                            Hey! Yep, it's still available. It's in great condition.
-                        </div>
-                    </div>
-
-                    {/* Buyer Message */}
-                    <div className="flex justify-start">
-                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
-                            Awesome. Are you flexible on the price?
-                        </div>
-                    </div>
-
-                    {/* Seller Message */}
-                    <div className="flex justify-end">
-                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
-                            I can knock off $30 if you're ready to buy it this week.
-                        </div>
-                    </div>
-
-                    {/* Buyer Message */}
-                    <div className="flex justify-start">
-                        <div className="bg-gray-700 p-3 rounded-lg max-w-md">
-                            Deal! Can we meet on campus tomorrow around noon?
-                        </div>
-                    </div>
-
-                    {/* Seller Message */}
-                    <div className="flex justify-end">
-                        <div className="bg-green-600 p-3 rounded-lg max-w-md">
-                            Sounds good! Let's meet at the student center at 12.
-                        </div>
-                    </div>
+                    ))}
+                    <div ref={bottomRef}></div>
                 </div>
 
+                {/* Floating scroll-to-bottom button */}
+                {showScrollButton && (
+                    <button
+                        onClick={scrollToBottom}
+                        className="absolute bottom-28 left-1/2 transform -translate-x-1/2 w-10 h-10 bg-green-600 hover:bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center transition"
+                        title="Go to latest"
+                    >
+                        ↓
+                    </button>
+                )}
+
                 {/* Input and Send */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 mt-4">
                     <input
                         type="text"
                         placeholder="Type a message"
