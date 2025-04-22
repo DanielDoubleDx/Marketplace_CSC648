@@ -2,7 +2,25 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+
+    if (email && password) {
+      // Do actual login here (e.g., call API)
+      console.log('Logging in with:', { email, password });
+    }
+  };
+
+  const inputClass = (value) =>
+    `w-full px-4 py-2 rounded-lg bg-gray-700 border ${
+      submitted && !value ? 'border-red-500' : 'border-gray-600'
+    } text-white placeholder-gray-400 focus:outline-none focus:border-primary-500`;
 
   return (
     <div className="container mx-auto">
@@ -10,30 +28,37 @@ function Login() {
         <h2 className="text-3xl font-bold text-center text-white mb-8">Login</h2>
 
         {/* Login Form */}
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
-              Email or Phone
+              Email or Phone <span className="text-red-500">*</span>
             </label>
             <input
               id="email"
               name="email"
               type="text"
-              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClass(email)}
               placeholder="Enter your email or phone"
             />
+            {submitted && !email && (
+              <p className="text-red-500 text-sm mt-1">⚠ Enter your email or mobile phone number</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="password">
-              Password
+              Password <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass(password)}
                 placeholder="Enter your password"
               />
               <button
@@ -53,6 +78,9 @@ function Login() {
                 )}
               </button>
             </div>
+            {submitted && !password && (
+              <p className="text-red-500 text-sm mt-1">⚠ Minimum 6 characters required</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -76,7 +104,7 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-300"
+            className="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition duration-300"
           >
             Login
           </button>
