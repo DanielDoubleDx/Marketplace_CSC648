@@ -111,7 +111,7 @@ function Home() {
   return (
     <div className="container mx-auto">
       {!searchResults && (
-        <section className="relative h-[500px] rounded-lg overflow-hidden mb-12">
+        <section className="relative h-[250px] rounded-lg overflow-hidden mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-700 opacity-90"></div>
           <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
             <h1 className="text-5xl font-bold mb-4">
