@@ -12,7 +12,7 @@ function Login() {
     setSubmitted(true);
 
     if (email && password) {
-      // Do actual login here (e.g., call API)
+      // Do actual login here to call API
       console.log('Logging in with:', { email, password });
     }
   };
@@ -43,7 +43,7 @@ function Login() {
               placeholder="Enter your email or phone"
             />
             {submitted && !email && (
-              <p className="text-red-500 text-sm mt-1">⚠ Enter your email or mobile phone number</p>
+              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or mobile phone number</p>
             )}
           </div>
 
@@ -79,7 +79,7 @@ function Login() {
               </button>
             </div>
             {submitted && !password && (
-              <p className="text-red-500 text-sm mt-1">⚠ Minimum 6 characters required</p>
+              <p className="text-red-500 text-sm mt-1">⚠️ Minimum 6 characters required</p>
             )}
           </div>
 

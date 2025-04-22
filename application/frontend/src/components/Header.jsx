@@ -26,9 +26,9 @@ function Header() {
         {/* Search Bar */}
         <SearchBar />
 
-        {/* Icons and Cart */}
+        {/* Postings Icon */}
         <div className="flex items-center space-x-4">
-          <Link to="/posting" className="hover:text-yellow-400" title="Post Listing">
+          <Link to="/posting" className="hover:text-yellow-400" title="Posting Items">
             <svg
               className="w-7 h-7"
               fill="none"
@@ -45,7 +45,7 @@ function Header() {
           </Link>
 
           {/* Login Button */}
-          <Link to="/login" className="hover:text-yellow-400">
+          <Link to="/login" className="hover:text-yellow-400" >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
