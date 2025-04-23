@@ -18,7 +18,7 @@ function MainLayout() {
         <Outlet />
       </main>
 
-      {/* Floating Contact Button */}
+      {/* Contact Button */}
       <button
         onClick={handleContactClick}
         className="fixed bottom-10 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg"
