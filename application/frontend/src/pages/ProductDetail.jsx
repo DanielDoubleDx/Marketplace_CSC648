@@ -66,12 +66,12 @@ const ProductDetail = () => {
 
             {/* Product image */}
             <img
-              src={product.image_url || "https://via.placeholder.com/400"}
+              src={product.image_url}
               alt={product.title}
               className="w-full h-[300px] object-cover mb-4 border rounded-lg"
             />
 
-            {/* Seller rating and name */}
+            {/* Seller name and rating */}
             <div className="mt-4">
               <h3 className="text-lg font-semibold">Seller Rating</h3>
               <p className="text-gray-300">{product.seller?.name || "Unknown"}</p>

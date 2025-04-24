@@ -21,7 +21,7 @@ function MainLayout() {
       {/* Contact Button */}
       <button
         onClick={handleContactClick}
-        className="fixed bottom-10 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg"
+        className="fixed bottom-3 right-3 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg"
         title="Contact Us"
       >
         💬
