@@ -84,7 +84,7 @@ function Home() {
   const renderSkeletons = (count) => Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
 
   const renderProductCard = (product) => {
-    const id = product.listing_id || product.id;
+    const id = product.listing_id;
     const imageUrl = `${API_BASE}/api/listings/${id}/thumbnail`;
 
     return (
