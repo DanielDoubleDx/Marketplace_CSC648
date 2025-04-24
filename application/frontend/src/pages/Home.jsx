@@ -23,6 +23,7 @@ function Home() {
 
   const API_BASE = "http://13.52.231.140:3001";
 
+  // Fetch data from the API
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -46,6 +47,7 @@ function Home() {
   const row2 = products.slice(4, 8);
   const row3 = products.slice(8, 12);
 
+  // Update search results
   useEffect(() => {
     const handleSearchEvent = (event) => {
       setLoading(true);
@@ -64,14 +66,20 @@ function Home() {
   useEffect(() => {
     const search = searchParams.get("search");
     const category = searchParams.get("category");
-
+  
     if (search || category) {
       setLoading(true);
       setTimeout(() => {
         const savedResults = JSON.parse(localStorage.getItem("searchResults"));
         if (savedResults) {
           setSearchResults(savedResults);
-          setSearchTitle(`Search Results: "${search}" ${category !== "All" ? `- ${category}` : ""}`);
+          let title = "";
+          if (!search || search.trim() === "") {
+            title = `Search results for "${category}"`;
+          } else {
+            title = `Search results "${search}" for "${category}"`;
+          }
+          setSearchTitle(title);
         }
         setLoading(false);
       }, 800);
@@ -79,10 +87,12 @@ function Home() {
       setSearchResults(null);
       setSearchTitle("");
     }
-  }, [searchParams]);
+  }, [searchParams]);  
 
+  // Function to generate loading skeletons for product cards.
   const renderSkeletons = (count) => Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
 
+  // Function to render product card components for each product.
   const renderProductCard = (product) => {
     const id = product.listing_id;
     const imageUrl = `${API_BASE}/api/listings/${id}/thumbnail`;
@@ -110,6 +120,7 @@ function Home() {
 
   return (
     <div className="container mx-auto">
+      {/* Banner for homepage */}
       {!searchResults && (
         <section className="relative h-[250px] rounded-lg overflow-hidden mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-700 opacity-90"></div>
@@ -124,6 +135,7 @@ function Home() {
         </section>
       )}
 
+      {/* Search results section */}
       {searchResults && (
         <section className="mt-20 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-white">{searchTitle}</h2>
@@ -144,6 +156,7 @@ function Home() {
         </section>
       )}
 
+      {/* Display all products if no search results */}
       {!searchResults && !loading && (
         <>
           <section className="mb-12">
