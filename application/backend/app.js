@@ -6,6 +6,7 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
+app.use(cors());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -18,7 +19,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Middleware
-app.use(cors());
+
 app.use(express.json());
 
 
@@ -74,6 +75,12 @@ app.get("/api/listings/:id/thumbnail", (req, res) => {
     res.sendFile(thumbPath);
   });
 });
+
+app.post("/new/test", (req, res) => {
+  res.sendStatus(200).send({message: "hello"});
+});
+
+
 
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
