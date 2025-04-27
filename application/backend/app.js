@@ -1,27 +1,41 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const multer = require("multer")
+const multer = require("multer");
 const path = require("path");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 
+const fs = require("fs"); // File system module
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadDir = path.join(__dirname, "../uploads");
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  }
+    // Creating file with a unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
 });
+
 const upload = multer({ storage: storage });
 
 // Middleware
 
 app.use(express.json());
-
 
 // Database connection to AWS RDS
 const pool = mysql.createPool({
@@ -77,10 +91,8 @@ app.get("/api/listings/:id/thumbnail", (req, res) => {
 });
 
 app.post("/new/test", (req, res) => {
-  res.sendStatus(200).send({message: "hello"});
+  res.sendStatus(200).send({ message: "hello" });
 });
-
-
 
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
@@ -99,27 +111,39 @@ app.get("/api/listings/:id/img", (req, res) => {
   });
 });
 
-app.post("/upload", upload.single("image"), (req, res) => {
+app.post("/uploads", upload.single("image"), (req, res) => {
+  console.log("Upload route hit!"); // Debug stuff
+  console.log("Request file:", req.file); // Debug stuff
+  console.log("Request body:", req.body); // Debug stuff
 
-  // write img path to database 
-  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
-  console.log(sql);
-  res.sendStatus(200);
-  // pool.query(sql, [listingImgPath, listingId], (err, result) => {
-  //   if (err) return res.status(500).json({ error: "Database error" });
-  //   if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-  //   res.json({ message: "Listing image updated successfully" });
-  // });
-  // // write thumbnail path to database 
-  // sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
-  // pool.query(sql, [listingThumbPath, listingId], (err, result) => {
-  //   if (err) return res.status(500).json({ error: "Database error" });
-  //   if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-  //   res.json({ message: "Listing thumbnail updated successfully" });
-  // });
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const listingId = req.body.listingId;
+  if (!listingId) {
+    return res.status(400).json({ error: "Listing ID is required" });
+  }
+
+  // Get absolute path to the uploaded file
+  const filePath = path.resolve(req.file.path);
+  console.log("File uploaded to:", filePath);
+
+  // Update database with absolute path
+  const sql = "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE id = ?";
+  pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    res.status(200).json({ message: "Image uploaded successfully" });
+  });
 });
-
-
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
@@ -179,5 +203,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Server is running on port ${PORT}`);
   console.log(`Test API at: http://localhost:${PORT}/api/test`);
-  console.log(`Database test at: http://localhost:${PORT}/api/db-test`);
-});
+  console.log(`Database test at: http://localhost:${PORT}/api/db-test
