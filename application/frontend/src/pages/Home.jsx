@@ -20,6 +20,7 @@ function Home() {
   const [searchTitle, setSearchTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [apiData, setApiData] = useState({ items: [], count: 0 });
+  const [error, setError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
 
@@ -27,12 +28,15 @@ function Home() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null); // reset error before fetching
       try {
         const response = await fetch(`${API_BASE}/api/search`);
+        if (!response.ok) throw new Error("Failed to fetch data.");
         const data = await response.json();
         setApiData(data);
       } catch (error) {
         console.error("Error fetching listings:", error);
+        setError("Failed to load products. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -43,9 +47,6 @@ function Home() {
 
   // Slice first 12 products into three rows for grid display
   const products = apiData?.items?.slice(0, 12) || [];
-  const row1 = products.slice(0, 4);
-  const row2 = products.slice(4, 8);
-  const row3 = products.slice(8, 12);
 
   // Update search results
   useEffect(() => {
@@ -66,7 +67,7 @@ function Home() {
   useEffect(() => {
     const search = searchParams.get("search");
     const category = searchParams.get("category");
-  
+
     if (search || category) {
       setLoading(true);
       setTimeout(() => {
@@ -87,10 +88,10 @@ function Home() {
       setSearchResults(null);
       setSearchTitle("");
     }
-  }, [searchParams]);  
+  }, [searchParams]);
 
-  // Function to generate loading skeletons for product cards.
-  const renderSkeletons = (count) => Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
+  const renderSkeletons = (count) =>
+    Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
 
   // Function to render product card components for each product.
   const renderProductCard = (product) => {
@@ -158,26 +159,28 @@ function Home() {
 
       {/* Display all products if no search results */}
       {!searchResults && !loading && (
-        <>
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {row1.map(renderProductCard)}
-            </div>
-          </section>
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
 
-          <section className="mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {loading ? renderSkeletons(4) : row2.map(renderProductCard)}
+          {error ? (
+            <div className="bg-red-600 text-white p-4 rounded-lg text-center">
+              {error}
             </div>
-          </section>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {products.map(renderProductCard)}
+            </div>
+          )}
+        </section>
+      )}
 
-          <section className="mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {loading ? renderSkeletons(4) : row3.map(renderProductCard)}
-            </div>
-          </section>
-        </>
+      {/* Loading fallback for initial state */}
+      {!searchResults && loading && (
+        <section className="mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {renderSkeletons(12)}
+          </div>
+        </section>
       )}
     </div>
   );
