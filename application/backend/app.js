@@ -171,6 +171,54 @@ app.get("/api/search", (req, res) => {
   });
 });
 
+const bcrypt = require("bcrypt");
+
+// User registration
+app.post("/api/register", async (req, res) => {
+  const { fullName, email, username, password, confirmPassword } = req.body;
+
+  // Basic validations
+  if (!fullName || !email || !username || !password || !confirmPassword) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords do not match" });
+  }
+
+  try {
+    // Check if email or username already exists
+    const checkUser = "SELECT * FROM users WHERE email = ? OR username = ?";
+    pool.query(checkUser, [email, username], async (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      if (results.length > 0) {
+        return res.status(409).json({ error: "Email or username already exists" });
+      }
+
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Insert user
+      const insertUser = "INSERT INTO users (full_name, email, username, password) VALUES (?, ?, ?, ?)";
+      pool.query(insertUser, [fullName, email, username, hashedPassword], (err, result) => {
+        if (err) {
+          console.error("Error inserting user:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        return res.status(201).json({ message: "User registered successfully" });
+      });
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 // Serve static files from the React frontend app
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 

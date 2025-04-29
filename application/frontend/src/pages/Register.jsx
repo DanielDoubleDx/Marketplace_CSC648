@@ -64,13 +64,36 @@ function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      // Submit form or do whatever
-      console.log('Form submitted successfully!', formData);
+  
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+  
+    try {
+      // may need to change for the server
+      const response = await fetch("http://localhost:3001/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Registration successful!");
+        // Optionally redirect to login
+      } else {
+        alert(data.error || "Registration failed.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Something went wrong. Try again.");
     }
   };
+  
 
   const inputStyle = (field) =>
     `w-full px-4 py-2 rounded-lg bg-gray-700 ${errors[field] ? 'border-red-500' : 'border-gray-600'
