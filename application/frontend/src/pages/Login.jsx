@@ -31,7 +31,7 @@ function Login() {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
-              Email or Phone <span className="text-red-500">*</span>
+              Email or Username <span className="text-red-500">*</span>
             </label>
             <input
               id="email"
@@ -40,10 +40,10 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass(email)}
-              placeholder="Enter your email or phone"
+              placeholder="Enter your email or username"
             />
             {submitted && !email && (
-              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or mobile phone number</p>
+              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or username</p>
             )}
           </div>
 

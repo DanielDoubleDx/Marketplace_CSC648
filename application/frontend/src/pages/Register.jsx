@@ -33,11 +33,8 @@ function Register() {
       newErrors.email = 'Enter your email or mobile phone number';
     } else if (!formData.email.includes('@')) {
       newErrors.email = "Please include an '@' in the email address.";
-    } else if (
-      !formData.email.endsWith('@sfsu.edu') &&
-      !formData.email.endsWith('@mail.sfsu.edu')
-    ) {
-      newErrors.email = 'Please use a valid SFSU email address ending with @sfsu.edu or @mail.sfsu.edu.';
+    } else if (!formData.email.endsWith('@sfsu.edu')) {
+      newErrors.email = 'Please use a valid SFSU email address ending with @sfsu.edu.';
     }
 
     if (!formData.username.trim()) {
@@ -67,14 +64,14 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+    // Validate form fields before submitting
+    if (!validate()) {
+      return; // Stop the form submission if validation fails
     }
   
     try {
       // may need to change for the server
-      const response = await fetch("http://localhost:3001/api/register", {
+      const response = await fetch("http://13.52.231.140:3001/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
