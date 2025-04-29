@@ -8,6 +8,7 @@ function Register() {
     username: '',
     password: '',
     confirmPassword: '',
+    acceptedTerms: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -15,10 +16,10 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -57,31 +58,32 @@ function Register() {
       newErrors.confirmPassword = 'Passwords must match';
     }
 
+    if (!formData.acceptedTerms) {
+      newErrors.acceptedTerms = 'You must accept the terms and conditions';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Validate form fields before submitting
+
     if (!validate()) {
-      return; // Stop the form submission if validation fails
+      return;
     }
-  
+
     try {
-      // may need to change for the server
       const response = await fetch("http://13.52.231.140:3001/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         alert("Registration successful!");
-        // Optionally redirect to login
       } else {
         alert(data.error || "Registration failed.");
       }
@@ -90,7 +92,6 @@ function Register() {
       alert("Something went wrong. Try again.");
     }
   };
-  
 
   const inputStyle = (field) =>
     `w-full px-4 py-2 rounded-lg bg-gray-700 ${errors[field] ? 'border-red-500' : 'border-gray-600'
@@ -176,7 +177,7 @@ function Register() {
                 {/* Eye icon */}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {showPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M3 3l18 18" />
                   ) : (
                     <>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -225,6 +226,31 @@ function Register() {
               <p className="text-red-500 text-sm mt-1">⚠️ {errors.confirmPassword}</p>
             )}
           </div>
+
+          {/* Accept Terms */}
+          <div className="flex items-start space-x-2">
+            <input
+              id="acceptedTerms"
+              name="acceptedTerms"
+              type="checkbox"
+              checked={formData.acceptedTerms}
+              onChange={handleChange}
+              className="mt-1"
+            />
+            <label htmlFor="acceptedTerms" className="text-sm text-gray-300">
+              I agree to the{' '}
+              <button
+                type="button"
+                className="text-green-500 hover:underline"
+              >
+                terms and conditions
+              </button>
+              .
+            </label>
+          </div>
+          {errors.acceptedTerms && (
+            <p className="text-red-500 text-sm mt-1">⚠️ {errors.acceptedTerms}</p>
+          )}
 
           {/* Submit */}
           <button
