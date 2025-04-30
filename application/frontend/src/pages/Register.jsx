@@ -76,7 +76,7 @@ function Register() {
     try {
       const response = await fetch("http://13.52.231.140:3001/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, 
         body: JSON.stringify(formData),
       });
 
