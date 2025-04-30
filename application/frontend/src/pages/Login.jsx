@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -15,8 +15,8 @@ function Login() {
     setSubmitted(true);
     setErrorMessage('');
 
-    // Proceed only if both email and password are filled
-    if (email && password) {
+    // Proceed only if both identifier and password are filled
+    if (identifier && password) {
       try {
         // Make API POST request
         const response = await fetch('http://13.52.231.140:3001/api/login', {
@@ -24,7 +24,7 @@ function Login() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ identifier, password }),
         });
 
         // If login is successful
@@ -73,22 +73,22 @@ function Login() {
 
         {/* Login form */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Email or Username field */}
+          {/* Identifier field */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
-              Email <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="identifier">
+              Email or Username <span className="text-red-500">*</span>
             </label>
             <input
-              id="email"
-              name="email"
+              id="identifier"
+              name="identifier"
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass(email)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className={inputClass(identifier)}
               placeholder="Enter your email or username"
             />
-            {submitted && !email && (
-              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email</p>
+            {submitted && !identifier && (
+              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or username</p>
             )}
           </div>
 
