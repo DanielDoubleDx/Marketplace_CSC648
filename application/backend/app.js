@@ -84,6 +84,47 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// User login with email OR username
+app.post("/api/login", async (req, res) => {
+  const { identifier, password } = req.body; // identifier = email or username
+  console.log("Login attempt using:", identifier);
+
+  if (!identifier || !password) {
+    return res.status(400).json({ error: "Email/Username and password are required" });
+  }
+
+  try {
+    const sql = "SELECT * FROM users WHERE email = ? OR username = ?";
+    const results = await pool.query(sql, [identifier, identifier]);
+
+    if (results.length === 0) {
+      return res.status(401).json({ error: "Invalid email/username or password" });
+    }
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email/username or password" });
+    }
+
+    // Success
+    return res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.full_name,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 // listing ID upload
 app.post("/api/listings/:id/upload", upload.single("image"), (req, res) => {
   const listingId = parseInt(req.params.id);
