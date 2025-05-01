@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
+function handleLogout() {
+
+}
+
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
@@ -107,6 +111,16 @@ function Header() {
                 >
                   ℹ️ About
                 </Link>
+                <button
+                    onClick={() => {
+                      closeMenu();
+                      handleLogout(); // NEED LOGIC
+                    }}
+                    className="block hover:text-yellow-400"
+                >
+                  🏃‍♂️ Logout
+                </button>
+
               </div>
             )}
           </div>
