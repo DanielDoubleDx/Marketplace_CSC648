@@ -75,7 +75,7 @@ app.get("/api/db-test", (req, res) => {
 
 app.get("/api/listings/:id/thumbnail", (req, res) => {
   const listingId = parseInt(req.params.id);
-  const sql = "SELECT thumbnail FROM listings WHERE id = ?";
+  const sql = "SELECT thumbnail FROM listings WHERE listing_id = ?";
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -96,7 +96,7 @@ app.post("/new/test", (req, res) => {
 
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
-  const sql = "SELECT listing_img FROM listings WHERE id = ?";
+  const sql = "SELECT listing_img FROM listings WHERE listing_id = ?";
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -130,7 +130,8 @@ app.post("/uploads", upload.single("image"), (req, res) => {
   console.log("File uploaded to:", filePath);
 
   // Update database with absolute path
-  const sql = "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE id = ?";
+  const sql =
+    "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
   pool.query(sql, [filePath, filePath, listingId], (err, result) => {
     if (err) {
       console.error("Database error:", err);
@@ -203,4 +204,5 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Server is running on port ${PORT}`);
   console.log(`Test API at: http://localhost:${PORT}/api/test`);
-  console.log(`Database test at: http://localhost:${PORT}/api/db-test
+  console.log(`Database test at: http://localhost:${PORT}/api/db-test`);
+});
