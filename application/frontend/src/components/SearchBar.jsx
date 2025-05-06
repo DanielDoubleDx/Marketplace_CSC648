@@ -130,7 +130,15 @@ function SearchBar() {
       <input
         type="text"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          const alphanumericCount = (value.match(/[a-zA-Z0-9]/g) || []).length;
+
+          // Only allow typing if deleting or under limit
+          if (alphanumericCount <= 40 || value.length < searchTerm.length) {
+            setSearchTerm(value);
+          }
+        }}
         onKeyPress={handleKeyPress}
         placeholder="Search"
         className="w-full px-4 py-2 bg-gray-700 text-white focus:outline-none placeholder-gray-400"
