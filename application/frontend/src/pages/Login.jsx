@@ -31,19 +31,19 @@ function Login() {
         if (response.ok) {
           const data = await response.json();
           console.log('Login successful:', data);
-          
+
           // After successful login, redirect to Home page
           navigate('/');
 
-        } 
+        }
         // If user not found
         else if (response.status === 404) {
           setErrorMessage('⚠️ User not found. Please check your email or username.');
-        } 
+        }
         // If password is incorrect
         else if (response.status === 401) {
           setErrorMessage('⚠️ Incorrect password. Please try again.');
-        } 
+        }
         // Failure
         else {
           setErrorMessage('⚠️ Login failed. Please try again later.');
@@ -56,14 +56,13 @@ function Login() {
   };
 
   const inputClass = (value) =>
-    `w-full px-4 py-2 rounded-lg bg-gray-700 border ${
-      submitted && !value ? 'border-red-500' : 'border-gray-600'
+    `w-full px-4 py-2 rounded-lg bg-gray-700 border ${submitted && !value ? 'border-red-500' : 'border-gray-600'
     } text-white placeholder-gray-400 focus:outline-none focus:border-primary-500`;
 
   return (
     <div className="container mx-auto">
       <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
-        <h2 className="text-3xl font-bold text-center text-white mb-8">Login</h2>
+        <h2 className="text-3xl font-bold text-center text-white mb-8">LOGIN</h2>
 
         {errorMessage && (
           <div className="bg-red-600 text-white text-sm p-3 rounded mb-4">
@@ -177,9 +176,9 @@ function Login() {
 
         {/* Sign up button */}
         <p className="mt-6 text-center text-sm text-gray-400">
-          Not a member?{' '}
+          Don't have an account?{' '}
           <Link to="/register" className="text-green-500 hover:text-green-600">
-            Sign up now
+            Register
           </Link>
         </p>
       </section>

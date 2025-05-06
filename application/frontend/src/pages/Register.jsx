@@ -76,7 +76,7 @@ function Register() {
     try {
       const response = await fetch("http://13.52.231.140:3001/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, 
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -100,7 +100,7 @@ function Register() {
   return (
     <div className="container mx-auto">
       <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
-        <h2 className="text-3xl font-bold text-center text-white mb-8">Create account</h2>
+        <h2 className="text-3xl font-bold text-center text-white mb-8">REGISTRATION</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
@@ -257,7 +257,7 @@ function Register() {
             type="submit"
             className="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-300"
           >
-            Register
+            Sign up
           </button>
         </form>
 
