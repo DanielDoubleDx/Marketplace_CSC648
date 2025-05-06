@@ -1,23 +1,65 @@
 import React, { useRef, useEffect, useState } from 'react';
+import axios from 'axios';
+import { use } from 'react';
 
-// Generate 100 users
-const users = Array.from({ length: 100 }).map((_, i) => ({
+// Generate users
+const users = Array.from({ length: 1 }).map((_, i) => ({
   id: i + 1,
   name: `User ${i + 1}`,
 }));
 
-// Generate 200 messages
-const allMessages = Array.from({ length: 200 }).map((_, i) => ({
+
+// Generate messages
+const allMessages = Array.from({ length: 2 }).map((_, i) => ({
   id: i + 1,
   text: i % 2 === 0 ? `Buyer message #${i + 1}` : `Seller message #${i + 1}`,
   sender: i % 2 === 0 ? 'buyer' : 'seller',
 }));
+
+
 
 function Message() {
   const bottomRef = useRef(null);
   const scrollRef = useRef(null);
   const [message, setMessage] = useState("");
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [allMessages, setAllMessages] = useState([]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+  const fetchMessages = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/messages'); 
+      setAllMessages(response.data); 
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+  const sendMessage = async () => {
+    //console.log('Sending message:', message);
+    if(!message.trim()) return;
+    const newMessage = {
+      text: message,
+      sender: 'buyer',
+    };
+    try {
+      const response = await axios.post('http://localhost:3000/api/messages', newMessage);
+      setAllMessages((prevMessages) => [...prevMessages, response.data]);
+      setMessage('');
+      console.log('Message sent:', response.data);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(() => {
+      //console.log('Fetching messages...');
+      fetchMessages();
+    }, 5000); // 5 seccond fetch
+    return () => clearInterval(interval);
+  }, []);
 
   // Scroll to bottom
   useEffect(() => {
@@ -67,6 +109,7 @@ function Message() {
         {/* Top Bar */}
         <div className="p-4 border-b border-gray-700 flex-shrink-0 font-semibold text-lg">
           Contact Name
+          {users.id}
         </div>
 
         {/* Messages Area */}
@@ -114,7 +157,8 @@ function Message() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-          <button className="bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-green-600 transition text-sm font-semibold">
+          <button className="bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-green-600 transition text-sm font-semibold"
+            onClick={sendMessage}>
             Send
           </button>
         </div>
