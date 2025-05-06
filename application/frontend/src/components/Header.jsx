@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
-
-function handleLogout() {
-
-}
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    // Clear any authentication-related storage
+    localStorage.removeItem("token"); // adjust key name if different
+    navigate('/');
+  }
 
   // Triggered when hovering or clicking hamburger
   const handleHamburgerMouseEnter = () => {
@@ -71,7 +74,7 @@ function Header() {
           </Link>
 
           {/* Login */}
-          <Link to="/login" className="hover:text-yellow-400" title="Login">
+          <Link to="/login" className="hover:text-yellow-400" title="Account">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
@@ -112,15 +115,14 @@ function Header() {
                   ℹ️ About
                 </Link>
                 <button
-                    onClick={() => {
-                      closeMenu();
-                      handleLogout(); // NEED LOGIC
-                    }}
-                    className="block hover:text-yellow-400"
+                  onClick={() => {
+                    closeMenu();
+                    handleLogout();
+                  }}
+                  className="block hover:text-yellow-400"
                 >
                   🏃‍♂️ Logout
                 </button>
-
               </div>
             )}
           </div>
