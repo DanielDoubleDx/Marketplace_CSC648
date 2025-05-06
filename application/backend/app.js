@@ -110,8 +110,8 @@ app.get("/api/listings/:id/img", (req, res) => {
     res.sendFile(imgPath);
   });
 });
-
-app.post("/uploads", upload.single("image"), (req, res) => {
+// don't delete yet till it has been approved by backend
+/*app.post("/uploads", upload.single("image"), (req, res) => {
   console.log("Upload route hit!"); // Debug stuff
   console.log("Request file:", req.file); // Debug stuff
   console.log("Request body:", req.body); // Debug stuff
@@ -130,6 +130,37 @@ app.post("/uploads", upload.single("image"), (req, res) => {
   console.log("File uploaded to:", filePath);
 
   // Update database with absolute path
+  const sql =
+    "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
+  pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    res.status(200).json({ message: "Image uploaded successfully" });
+  });
+}); */
+
+// API upload
+app.post(["/uploads", "/api/listings/:id/upload"], upload.single("image"), (req, res) => {
+  // Prefer param, fallback to body
+  const listingId = parseInt(req.params.id || req.body.listingId);
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  if (!listingId) {
+    return res.status(400).json({ error: "Listing ID is required" });
+  }
+
+  const filePath = path.resolve(req.file.path);
+
   const sql =
     "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
   pool.query(sql, [filePath, filePath, listingId], (err, result) => {
