@@ -18,17 +18,61 @@ const Posting = () => {
     setPhotos(files);
   };
 
-  const handleSubmit = (e) => {
+  const uploadImage = async (listingId) => {
+    const formDataObj = new FormData();
+    formDataObj.append("image", photos[0]); // Only the first photo is used for now
+
+    try {
+      const res = await fetch(`http://localhost:3001/api/listings/${listingId}/upload`, {
+        method: "POST",
+        body: formDataObj,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        console.log("Upload success:", data);
+        alert("Listing and image uploaded successfully!");
+      } else {
+        console.error("Upload error:", data);
+        alert("Image upload failed.");
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("An error occurred during image upload.");
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
 
     const isEmpty =
       !formData.title || !formData.price || !formData.description || photos.length === 0;
 
-    if (!isEmpty) {
-      // Submit form logic here
-      console.log('Publishing item:', { ...formData, photos });
-    }
+      if (!isEmpty) {
+        try {
+          // Step 1: Create the listing
+          const listingRes = await fetch("http://localhost:3001/api/listings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+  
+          const listingData = await listingRes.json();
+  
+          if (listingRes.ok && listingData.listingId) {
+            console.log("Created listing:", listingData);
+            // 🖼️ Step 2: Upload the photo to that listing
+            await uploadImage(listingData.listingId);
+          } else {
+            console.error("Failed to create listing.");
+            alert("Failed to create listing.");
+          }
+        } catch (err) {
+          console.error("Error during submission:", err);
+          alert("An error occurred while creating the listing.");
+        }
+      }
   };
 
   const getInputClass = (field) =>

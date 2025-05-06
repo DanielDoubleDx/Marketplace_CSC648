@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const multer = require("multer")
+const multer = require("multer");
 const path = require("path");
 const fs = require('fs');
 const bcrypt = require("bcrypt");
@@ -9,11 +9,35 @@ const util = require("util");
 require("dotenv").config();
 
 const app = express();
-const storage = multer.memoryStorage();
+app.use(cors());
+
+const fs = require("fs"); // File system module
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "../uploads");
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Creating file with a unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
+});
+
 const upload = multer({ storage: storage });
 
 // Middleware
-app.use(cors());
+
 app.use(express.json());
 
 // Database connection to AWS RDS
@@ -36,6 +60,22 @@ pool.getConnection((err, connection) => {
   }
   console.log("Connected to AWS RDS database");
   connection.release();
+});
+
+
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is working!" });
+});
+
+// Database test route
+app.get("/api/db-test", (req, res) => {
+  pool.query("SELECT 1 + 1 AS result", (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: "Database connected!", results });
+  });
 });
 
 // User registration
@@ -124,53 +164,11 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-
-// listing ID upload
-app.post("/api/listings/:id/upload", upload.single("image"), (req, res) => {
-  const listingId = parseInt(req.params.id);
-  const dirPath = path.join(__dirname, `/img/${listingId}/`);
-  const listingImgPath = path.join(dirPath, "image.png");
-  const listingThumbPath = path.join(dirPath, "thumbnail.png");
-
-  // create director
-  fs.mkdir(dirPath, { recursive: true }, (err) => {
-    if (err) {
-      console.error('An error occurred:', err);
-  }});
-  // write img to listingImgPath
-  fs.writeFile(listingImgPath, req.file.buffer, (err) => {
-    if (err) {
-      console.error("Error saving file:", err);
-      return res.status(500).json({ error: "File system error" });
-  }});
-  // write thumnnail to listingImgPath
-  // TODO resize img before saving as thumbnail
-  fs.writeFile(listingThumbPath, req.file.buffer, (err) => {
-    if (err) {
-      console.error("Error saving file:", err);
-      return res.status(500).json({ error: "File system error" });
-  }});
-
-  // write img path to database 
-  sql = "UPDATE listings SET listing_img = ? WHERE id = ?";
-  pool.query(sql, [listingImgPath, listingId], (err, result) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-    res.json({ message: "Listing image updated successfully" });
-  });
-  // write thumbnail path to database 
-  sql = "UPDATE listings SET thumbnail = ? WHERE id = ?";
-  pool.query(sql, [listingThumbPath, listingId], (err, result) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Listing not found" });
-    res.json({ message: "Listing thumbnail updated successfully" });
-  });
-});
-
 // listing ID image
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
   const sql = "SELECT listing_img FROM listings WHERE id = ?";
+
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -184,11 +182,11 @@ app.get("/api/listings/:id/img", (req, res) => {
     res.sendFile(imgPath);
   });
 });
-
 // listing thumbnail
 app.get("/api/listings/:id/thumbnail", (req, res) => {
   const listingId = parseInt(req.params.id);
   const sql = "SELECT thumbnail FROM listings WHERE id = ?";
+
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -200,6 +198,72 @@ app.get("/api/listings/:id/thumbnail", (req, res) => {
     // Magic, come back to later for debugging
     thumbPath = results[0].thumbnail;
     res.sendFile(thumbPath);
+  });
+});
+// don't delete yet till it has been approved by backend
+/*app.post("/uploads", upload.single("image"), (req, res) => {
+  console.log("Upload route hit!"); // Debug stuff
+  console.log("Request file:", req.file); // Debug stuff
+  console.log("Request body:", req.body); // Debug stuff
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const listingId = req.body.listingId;
+  if (!listingId) {
+    return res.status(400).json({ error: "Listing ID is required" });
+  }
+
+  // Get absolute path to the uploaded file
+  const filePath = path.resolve(req.file.path);
+  console.log("File uploaded to:", filePath);
+
+  // Update database with absolute path
+  const sql =
+    "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
+  pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    res.status(200).json({ message: "Image uploaded successfully" });
+  });
+}); */
+
+// API upload
+app.post(["/uploads", "/api/listings/:id/upload"], upload.single("image"), (req, res) => {
+  // Prefer param, fallback to body
+  const listingId = parseInt(req.params.id || req.body.listingId);
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  if (!listingId) {
+    return res.status(400).json({ error: "Listing ID is required" });
+  }
+
+  const filePath = path.resolve(req.file.path);
+
+  const sql =
+    "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
+  pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    res.status(200).json({ message: "Image uploaded successfully" });
   });
 });
 
