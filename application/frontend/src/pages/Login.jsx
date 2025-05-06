@@ -1,19 +1,57 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setErrorMessage('');
 
-    if (email && password) {
-      // Do actual login here to call API
-      console.log('Logging in with:', { email, password });
+    // Proceed only if both identifier and password are filled
+    if (identifier && password) {
+      try {
+        // Make API POST request
+        const response = await fetch('http://13.52.231.140:3001/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ identifier, password }),
+        });
+
+        // If login is successful
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Login successful:', data);
+          
+          // After successful login, redirect to Home page
+          navigate('/');
+
+        } 
+        // If user not found
+        else if (response.status === 404) {
+          setErrorMessage('⚠️ User not found. Please check your email or username.');
+        } 
+        // If password is incorrect
+        else if (response.status === 401) {
+          setErrorMessage('⚠️ Incorrect password. Please try again.');
+        } 
+        // Failure
+        else {
+          setErrorMessage('⚠️ Login failed. Please try again later.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        setErrorMessage('⚠️ Network error. Please try again later.');
+      }
     }
   };
 
@@ -27,26 +65,34 @@ function Login() {
       <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
         <h2 className="text-3xl font-bold text-center text-white mb-8">Login</h2>
 
-        {/* Login Form */}
+        {errorMessage && (
+          <div className="bg-red-600 text-white text-sm p-3 rounded mb-4">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Login form */}
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Identifier field */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2" htmlFor="email">
-              Email or Phone <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-white mb-2" htmlFor="identifier">
+              Email or Username <span className="text-red-500">*</span>
             </label>
             <input
-              id="email"
-              name="email"
+              id="identifier"
+              name="identifier"
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass(email)}
-              placeholder="Enter your email or phone"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className={inputClass(identifier)}
+              placeholder="Enter your email or username"
             />
-            {submitted && !email && (
-              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or mobile phone number</p>
+            {submitted && !identifier && (
+              <p className="text-red-500 text-sm mt-1">⚠️ Enter your email or username</p>
             )}
           </div>
 
+          {/* Password field */}
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="password">
               Password <span className="text-red-500">*</span>
@@ -61,6 +107,7 @@ function Login() {
                 className={inputClass(password)}
                 placeholder="Enter your password"
               />
+              {/* Toggle show/hide password */}
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
@@ -68,21 +115,38 @@ function Login() {
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    />
                   </svg>
                 ) : (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
                   </svg>
                 )}
               </button>
             </div>
+            {/* Validation message for empty password */}
             {submitted && !password && (
               <p className="text-red-500 text-sm mt-1">⚠️ Minimum 6 characters required</p>
             )}
           </div>
 
+          {/* Remember me and Forgot password link */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -102,6 +166,7 @@ function Login() {
             </div>
           </div>
 
+          {/* Submit button */}
           <button
             type="submit"
             className="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition duration-300"
@@ -110,6 +175,7 @@ function Login() {
           </button>
         </form>
 
+        {/* Sign up button */}
         <p className="mt-6 text-center text-sm text-gray-400">
           Not a member?{' '}
           <Link to="/register" className="text-green-500 hover:text-green-600">

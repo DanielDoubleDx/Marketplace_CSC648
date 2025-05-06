@@ -3,6 +3,9 @@ const cors = require("cors");
 const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
+const fs = require('fs');
+const bcrypt = require("bcrypt");
+const util = require("util");
 require("dotenv").config();
 
 const app = express();
@@ -47,6 +50,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+pool.query = util.promisify(pool.query);
 
 // Simple connection test
 pool.getConnection((err, connection) => {
@@ -57,6 +61,7 @@ pool.getConnection((err, connection) => {
   console.log("Connected to AWS RDS database");
   connection.release();
 });
+
 
 // Test route
 app.get("/api/test", (req, res) => {
@@ -73,30 +78,97 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
-app.get("/api/listings/:id/thumbnail", (req, res) => {
-  const listingId = parseInt(req.params.id);
-  const sql = "SELECT thumbnail FROM listings WHERE listing_id = ?";
-  pool.query(sql, [listingId], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
+// User registration
+app.post("/api/register", async (req, res) => {
+  const { fullName, email, username, password, confirmPassword } = req.body;
+  console.log("Received registration:", req.body);
+
+  // Basic validations
+  if (!fullName || !email || !username || !password || !confirmPassword) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords do not match" });
+  }
+
+  try {
+    // Check if email or username already exists
+    const checkUser = "SELECT * FROM users WHERE email = ? OR username = ?";
+    pool.query(checkUser, [email, username], async (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      if (results.length > 0) {
+        return res.status(409).json({ error: "Email or username already exists" });
+      }
+
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Insert user
+      const insertUser = "INSERT INTO users (full_name, email, username, password) VALUES (?, ?, ?, ?)";
+      pool.query(insertUser, [fullName, email, username, hashedPassword], (err, result) => {
+        if (err) {
+          console.error("Error inserting user:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        return res.status(201).json({ message: "User registered successfully" });
+      });
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// User login with email OR username
+app.post("/api/login", async (req, res) => {
+  const { identifier, password } = req.body; // identifier = email or username
+  console.log("Login attempt using:", identifier);
+
+  if (!identifier || !password) {
+    return res.status(400).json({ error: "Email/Username and password are required" });
+  }
+
+  try {
+    const sql = "SELECT * FROM users WHERE email = ? OR username = ?";
+    const results = await pool.query(sql, [identifier, identifier]);
+
     if (results.length === 0) {
-      return res.status(404).json({ error: "Listing not found" });
+      return res.status(401).json({ error: "Invalid email/username or password" });
     }
-    // Magic, come back to later for debugging
-    thumbPath = results[0].thumbnail;
-    res.sendFile(thumbPath);
-  });
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email/username or password" });
+    }
+
+    // Success
+    return res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.full_name,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
 });
 
-app.post("/new/test", (req, res) => {
-  res.sendStatus(200).send({ message: "hello" });
-});
-
+// listing ID image
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
-  const sql = "SELECT listing_img FROM listings WHERE listing_id = ?";
+  const sql = "SELECT listing_img FROM listings WHERE id = ?";
+
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -108,6 +180,24 @@ app.get("/api/listings/:id/img", (req, res) => {
     // Magic, come back to later for debugging
     imgPath = results[0].listing_img;
     res.sendFile(imgPath);
+  });
+});
+// listing thumbnail
+app.get("/api/listings/:id/thumbnail", (req, res) => {
+  const listingId = parseInt(req.params.id);
+  const sql = "SELECT thumbnail FROM listings WHERE id = ?";
+
+  pool.query(sql, [listingId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+    // Magic, come back to later for debugging
+    thumbPath = results[0].thumbnail;
+    res.sendFile(thumbPath);
   });
 });
 // don't delete yet till it has been approved by backend
@@ -218,6 +308,21 @@ app.get("/api/search", (req, res) => {
       count: results.length,
       items: results,
     });
+  });
+});
+
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is working!" });
+});
+
+// Database test route
+app.get("/api/db-test", (req, res) => {
+  pool.query("SELECT 1 + 1 AS result", (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: "Database connected!", results });
   });
 });
 
