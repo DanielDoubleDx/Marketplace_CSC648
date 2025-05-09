@@ -269,6 +269,7 @@ app.post(["/uploads", "/api/listings/:id/upload"], upload.single("image"), (req,
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
+  // Extract category and query parameters from the request
   let { category, query } = req.query;
 
   // Base SQL query
@@ -279,11 +280,17 @@ app.get("/api/search", (req, res) => {
   JOIN products_categories pc ON l.categories = pc.index_id
   WHERE 1=1
   `;
+  /*
+  It is good to use  parameterized queries to prevent SQL injection.
+  However, I recommend validating inputs like category and query to ensure 
+  they are the expected types and avoid errors or inefficient queries.
+  */
 
   const params = [];
 
   // Add category filter if provided
   if (category && category !== "default") {
+    // I would recommend validating that category is a valid integer before using it in the query.
     sql += ` AND l.categories = ?`;
     params.push(parseInt(category));
   }
@@ -291,13 +298,21 @@ app.get("/api/search", (req, res) => {
   // Add text search filter if provided, searchign title and description
   if (query) {
     // Searching for term in both title and description
+
+    /* I suggest trimming the query string and limiting its length
+     to avoid overly broad searches that can slow down the database.
+    */
     sql += ` AND (l.title LIKE ? OR l.product_desc LIKE ?)`;
     params.push(`%${query}%`); // Title Search
     params.push(`%${query}%`); // Description Search
   }
 
+  // You can consider to add pagination, which is LIMIT and OFFSET to avoid large result sets.
+
   // Execute query with parameterized values
   pool.query(sql, params, (err, results) => {
+    // I think it will be good to avoid showing raw database errors to the client. 
+    // Instead, I log the errors on the server and send a simple error message to the client.
     if (err) {
       console.error("Error executing search query:", err);
       return res.status(500).json({ error: "Database error" });
@@ -310,6 +325,13 @@ app.get("/api/search", (req, res) => {
     });
   });
 });
+/*
+The search functionality is working as intended and reliably returns accurate results. 
+The /api/search endpoint was tested using various combinations of title keywords and category filters. 
+The function successfully returned the expected results, accurately filtering listings based on 
+both the provided query, which matches the title and the category_name. The SQL query is parameterized, 
+minimizing the risk of SQL injection, and the response includes both the item count and relevant listing data. 
+*/
 
 // Test route
 app.get("/api/test", (req, res) => {
