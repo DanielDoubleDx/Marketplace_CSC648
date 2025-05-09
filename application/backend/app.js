@@ -11,8 +11,6 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 
-const fs = require("fs"); // File system module
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, "../uploads");
