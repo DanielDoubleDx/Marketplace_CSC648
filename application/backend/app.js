@@ -3,7 +3,7 @@ const cors = require("cors");
 const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
-const fs = require('fs');
+const fs = require("fs");
 const bcrypt = require("bcrypt");
 const util = require("util");
 require("dotenv").config();
@@ -47,6 +47,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  charset: "utf8mb4",
 });
 pool.query = util.promisify(pool.query);
 
@@ -59,7 +60,6 @@ pool.getConnection((err, connection) => {
   console.log("Connected to AWS RDS database");
   connection.release();
 });
-
 
 // Test route
 app.get("/api/test", (req, res) => {
@@ -99,7 +99,9 @@ app.post("/api/register", async (req, res) => {
         return res.status(500).json({ error: "Database error" });
       }
       if (results.length > 0) {
-        return res.status(409).json({ error: "Email or username already exists" });
+        return res
+          .status(409)
+          .json({ error: "Email or username already exists" });
       }
 
       // Hash password
@@ -107,14 +109,21 @@ app.post("/api/register", async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Insert user
-      const insertUser = "INSERT INTO users (full_name, email, username, password) VALUES (?, ?, ?, ?)";
-      pool.query(insertUser, [fullName, email, username, hashedPassword], (err, result) => {
-        if (err) {
-          console.error("Error inserting user:", err);
-          return res.status(500).json({ error: "Database error" });
+      const insertUser =
+        "INSERT INTO users (full_name, email, username, password) VALUES (?, ?, ?, ?)";
+      pool.query(
+        insertUser,
+        [fullName, email, username, hashedPassword],
+        (err, result) => {
+          if (err) {
+            console.error("Error inserting user:", err);
+            return res.status(500).json({ error: "Database error" });
+          }
+          return res
+            .status(201)
+            .json({ message: "User registered successfully" });
         }
-        return res.status(201).json({ message: "User registered successfully" });
-      });
+      );
     });
   } catch (error) {
     console.error("Error:", error);
@@ -128,7 +137,9 @@ app.post("/api/login", async (req, res) => {
   console.log("Login attempt using:", identifier);
 
   if (!identifier || !password) {
-    return res.status(400).json({ error: "Email/Username and password are required" });
+    return res
+      .status(400)
+      .json({ error: "Email/Username and password are required" });
   }
 
   try {
@@ -136,14 +147,18 @@ app.post("/api/login", async (req, res) => {
     const results = await pool.query(sql, [identifier, identifier]);
 
     if (results.length === 0) {
-      return res.status(401).json({ error: "Invalid email/username or password" });
+      return res
+        .status(401)
+        .json({ error: "Invalid email/username or password" });
     }
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ error: "Invalid email/username or password" });
+      return res
+        .status(401)
+        .json({ error: "Invalid email/username or password" });
     }
 
     // Success
@@ -165,7 +180,7 @@ app.post("/api/login", async (req, res) => {
 // listing ID image
 app.get("/api/listings/:id/img", (req, res) => {
   const listingId = parseInt(req.params.id);
-  const sql = "SELECT listing_img FROM listings WHERE id = ?";
+  const sql = "SELECT listing_img FROM listings WHERE listng_id = ?";
 
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
@@ -183,7 +198,7 @@ app.get("/api/listings/:id/img", (req, res) => {
 // listing thumbnail
 app.get("/api/listings/:id/thumbnail", (req, res) => {
   const listingId = parseInt(req.params.id);
-  const sql = "SELECT thumbnail FROM listings WHERE id = ?";
+  const sql = "SELECT thumbnail FROM listings WHERE listing_id = ?";
 
   pool.query(sql, [listingId], (err, results) => {
     if (err) {
@@ -235,35 +250,39 @@ app.get("/api/listings/:id/thumbnail", (req, res) => {
 }); */
 
 // API upload
-app.post(["/uploads", "/api/listings/:id/upload"], upload.single("image"), (req, res) => {
-  // Prefer param, fallback to body
-  const listingId = parseInt(req.params.id || req.body.listingId);
+app.post(
+  ["/uploads", "/api/listings/:id/upload"],
+  upload.single("image"),
+  (req, res) => {
+    // Prefer param, fallback to body
+    const listingId = parseInt(req.params.id || req.body.listingId);
 
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  if (!listingId) {
-    return res.status(400).json({ error: "Listing ID is required" });
-  }
-
-  const filePath = path.resolve(req.file.path);
-
-  const sql =
-    "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
-  pool.query(sql, [filePath, filePath, listingId], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Listing not found" });
+    if (!listingId) {
+      return res.status(400).json({ error: "Listing ID is required" });
     }
 
-    res.status(200).json({ message: "Image uploaded successfully" });
-  });
-});
+    const filePath = path.resolve(req.file.path);
+
+    const sql =
+      "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
+    pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Listing not found" });
+      }
+
+      res.status(200).json({ message: "Image uploaded successfully" });
+    });
+  }
+);
 
 // API endpoint for search
 app.get("/api/search", (req, res) => {
@@ -309,7 +328,7 @@ app.get("/api/search", (req, res) => {
 
   // Execute query with parameterized values
   pool.query(sql, params, (err, results) => {
-    // I think it will be good to avoid showing raw database errors to the client. 
+    // I think it will be good to avoid showing raw database errors to the client.
     // Instead, I log the errors on the server and send a simple error message to the client.
     if (err) {
       console.error("Error executing search query:", err);
