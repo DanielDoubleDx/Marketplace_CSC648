@@ -65,7 +65,7 @@ function SearchBar() {
     });
 
     localStorage.setItem("searchResults", JSON.stringify(filteredProducts));
-    navigate(`/?search=${searchTerm}&category=${category}`);
+    navigate(`/?search=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}`);
     window.dispatchEvent(
       new CustomEvent("searchCompleted", {
         detail: { results: filteredProducts },
@@ -81,10 +81,13 @@ function SearchBar() {
   };
 
   return (
+    // Search bar container
     <div className="flex flex-grow max-w-3xl mx-6 bg-gray-800 rounded-lg overflow-hidden border border-gray-700 search-bar-container">
       <span ref={spanRef} className="absolute invisible whitespace-nowrap px-2">
         {category}
       </span>
+
+      {/* Category select dropdown */}
       <select
         ref={selectRef}
         value={category}
@@ -103,8 +106,11 @@ function SearchBar() {
             return matchesCategory && matchesName;
           });
 
+          // Save filtered products to localStorage
           localStorage.setItem("searchResults", JSON.stringify(filtered));
-          navigate(`/?search=${searchTerm}&category=${selectedCategory}`);
+          // Navigate to the search results page
+          navigate(`/?search=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(selectedCategory)}`);
+          // Dispatch search completed event
           window.dispatchEvent(
             new CustomEvent("searchCompleted", {
               detail: { results: filtered },
@@ -120,15 +126,25 @@ function SearchBar() {
         ))}
       </select>
 
+      {/* Search input field */}
       <input
         type="text"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          const alphanumericCount = (value.match(/[a-zA-Z0-9]/g) || []).length;
+
+          // Only allow typing if deleting or under limit
+          if (alphanumericCount <= 40 || value.length < searchTerm.length) {
+            setSearchTerm(value);
+          }
+        }}
         onKeyPress={handleKeyPress}
         placeholder="Search"
         className="w-full px-4 py-2 bg-gray-700 text-white focus:outline-none placeholder-gray-400"
       />
 
+      {/* Clear button to reset search */}
       {searchTerm && (
         <button
           className="bg-gray-600 px-3 hover:bg-gray-500 clear-button"
@@ -150,6 +166,7 @@ function SearchBar() {
         </button>
       )}
 
+      {/* Search button */}
       <button
         className="bg-green-500 px-5 py-2 hover:bg-green-600 search-button"
         onClick={handleSearch}
