@@ -21,6 +21,9 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const API_BASE = "http://13.52.231.140:3001";
+  //const API_BASE = "http://localhost:3001";
 
   useEffect(() => {
     setLoading(true);
@@ -66,7 +69,7 @@ const ProductDetail = () => {
 
             {/* Product image */}
             <img
-              src={product.image_url}
+              src={`${API_BASE}${product.thumbnail}`}
               alt={product.title}
               className="w-full h-[300px] object-cover mb-4 border rounded-lg"
             />

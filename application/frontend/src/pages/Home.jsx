@@ -23,6 +23,7 @@ function Home() {
   const [error, setError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
+  //const API_BASE = "http://localhost:3001";
 
   // Fetch data from the API
   useEffect(() => {
@@ -96,7 +97,7 @@ function Home() {
   // Function to render product card components for each product.
   const renderProductCard = (product) => {
     const id = product.listing_id;
-    const imageUrl = `${API_BASE}/api/listings/${id}/thumbnail`;
+    const imageUrl = `${API_BASE}${product.thumbnail}`;
 
     return (
       <Link

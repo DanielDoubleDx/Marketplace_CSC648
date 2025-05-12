@@ -178,41 +178,53 @@ app.post("/api/login", async (req, res) => {
 });
 
 // listing ID image
-app.get("/api/listings/:id/img", (req, res) => {
-  const listingId = parseInt(req.params.id);
-  const sql = "SELECT listing_img FROM listings WHERE listng_id = ?";
+// app.get("/api/listings/:id/img", (req, res) => {
+//   const listingId = parseInt(req.params.id);
+//   const sql = "SELECT listing_img FROM listings WHERE listing_id = ?";
 
-  pool.query(sql, [listingId], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Listing not found" });
-    }
-    // Magic, come back to later for debugging
-    imgPath = results[0].listing_img;
-    res.sendFile(imgPath);
-  });
-});
-// listing thumbnail
-app.get("/api/listings/:id/thumbnail", (req, res) => {
-  const listingId = parseInt(req.params.id);
-  const sql = "SELECT thumbnail FROM listings WHERE listing_id = ?";
+//   pool.query(sql, [listingId], (err, results) => {
+//     if (err) {
+//       console.error("Database error:", err);
+//       return res.status(500).json({ error: "Database error" });
+//     }
+//     if (results.length === 0) {
+//       return res.status(404).json({ error: "Listing not found" });
+//     }
+//     const imgPath = results[0].listing_img;
+//     const resolvePath = path.resolve(imgPath);
 
-  pool.query(sql, [listingId], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Listing not found" });
-    }
-    // Magic, come back to later for debugging
-    thumbPath = results[0].thumbnail;
-    res.sendFile(thumbPath);
-  });
-});
+//     if (!fs.existsSync(resolvePath)) {
+//       return res.status(404).json({ error: "Image not found" });
+//     }
+//     // Magic, come back to later for debugging
+
+//     res.sendFile(resolvePath);
+//   });
+// });
+
+// // listing thumbnail
+// app.get("/api/listings/:id/thumbnail", (req, res) => {
+//   const listingId = parseInt(req.params.id);
+//   const sql = "SELECT thumbnail FROM listings WHERE listing_id = ?";
+
+//   pool.query(sql, [listingId], (err, results) => {
+//     if (err) {
+//       console.error("Database error:", err);
+//       return res.status(500).json({ error: "Database error" });
+//     }
+//     if (results.length === 0) {
+//       return res.status(404).json({ error: "Listing not found" });
+//     }
+//     const thumbPath = results[0].thumbnail;
+//     const resolvePath = path.resolve(thumbPath);
+//     if (!fs.existsSync(resolvePath)) {
+//       return res.status(404).json({ error: "Thumbnail not found" });
+//     }
+//     // Magic, come back to later for debugging
+
+//     res.sendFile(resolvePath);
+//   });
+// });
 // don't delete yet till it has been approved by backend
 /*app.post("/uploads", upload.single("image"), (req, res) => {
   console.log("Upload route hit!"); // Debug stuff
@@ -265,11 +277,11 @@ app.post(
       return res.status(400).json({ error: "Listing ID is required" });
     }
 
-    const filePath = path.resolve(req.file.path);
+    const relativePath = `/uploads/${req.file.filename}`;
 
     const sql =
       "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
-    pool.query(sql, [filePath, filePath, listingId], (err, result) => {
+    pool.query(sql, [relativePath, relativePath, listingId], (err, result) => {
       if (err) {
         console.error("Database error:", err);
         return res.status(500).json({ error: "Database error" });
@@ -365,8 +377,7 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
-// Serve static files from the React frontend app
-app.use(express.static(path.join(__dirname, "../frontend/build")));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Anything that doesn't match the above, send back the index.html file
 app.get("*", (req, res) => {
