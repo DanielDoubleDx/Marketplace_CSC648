@@ -377,12 +377,17 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
+/// Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Anything that doesn't match the above, send back the index.html file
+// Add this line here to serve React static files
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// Always keep this at the very bottom
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
+
 
 // Starting the server
 const PORT = process.env.PORT || 3001;
