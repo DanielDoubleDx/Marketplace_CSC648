@@ -76,6 +76,22 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
+app.get("/api/user/:uuid", (req, res) => {
+  const uuid = req.params.uuid;
+  const sql = "SELECT * FROM users WHERE uuid = ?";
+  pool.query(sql, [uuid], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // Fixed response format
+    res.status(200).json({ message: "User Found", user: results[0] });
+  });
+});
+
 // User registration
 app.post("/api/register", async (req, res) => {
   const { fullName, email, username, password, confirmPassword } = req.body;
@@ -176,6 +192,9 @@ app.post("/api/login", async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+
+// User logout
+app.post("/api/logout", (req, res) => {});
 
 // listing ID image
 // app.get("/api/listings/:id/img", (req, res) => {
@@ -387,7 +406,6 @@ app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
-
 
 // Starting the server
 const PORT = process.env.PORT || 3001;
