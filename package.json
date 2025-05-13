@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/CSC-648-SFSU/csc648-fa25-0104-team04#readme",
   "dependencies": {
+    "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

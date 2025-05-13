@@ -31,6 +31,7 @@ function Login() {
         if (response.ok) {
           const data = await response.json();
           console.log('Login successful:', data);
+          alert("Login successful!");
 
           // After successful login, redirect to Home page
           navigate('/');
