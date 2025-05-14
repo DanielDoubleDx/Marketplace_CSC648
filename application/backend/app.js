@@ -48,6 +48,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: "utf8mb4",
+  connectTimeout: 60000, // Add this (60 seconds)
+  acquireTimeout: 60000, // Add this (60 seconds)
+  timeout: 60000, // Add this (60 seconds)
 });
 pool.query = util.promisify(pool.query);
 
@@ -76,20 +79,59 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
-app.get("/api/user/:uuid", (req, res) => {
+// Replace your current /api/user/:uuid endpoint with this:
+app.get("/api/user/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
-  const sql = "SELECT * FROM users WHERE uuid = ?";
-  pool.query(sql, [uuid], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (results.length === 0) {
+
+  try {
+    // Step 1: Get the user information
+    const userQuery =
+      "SELECT uuid, username, email, full_name, about_me FROM users WHERE uuid = ?";
+    const userResults = await pool.query(userQuery, [uuid]);
+
+    if (userResults.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
-    // Fixed response format
-    res.status(200).json({ message: "User Found", user: results[0] });
-  });
+
+    const user = userResults[0];
+
+    // Step 2: Get user's listings
+    const listingsQuery = `
+      SELECT 
+        l.listing_id, 
+        l.title, 
+        l.product_desc, 
+        l.price, 
+        l.created_at,
+        l.thumbnail, 
+        l.listing_img,
+        l.categories,
+        pc.categories as category_name
+      FROM 
+        listings l
+      LEFT JOIN 
+        products_categories pc ON l.categories = pc.index_id
+      WHERE 
+        l.seller_id = ?
+    `;
+    const listingsResults = await pool.query(listingsQuery, [uuid]);
+
+    // Default rating
+    const defaultRating = "0.0";
+
+    // Combine the results
+    return res.status(200).json({
+      message: "User Found",
+      seller: {
+        ...user,
+        rating: defaultRating,
+      },
+      products: listingsResults,
+    });
+  } catch (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
 });
 
 // User registration
@@ -194,7 +236,12 @@ app.post("/api/login", async (req, res) => {
 });
 
 // User logout
-app.post("/api/logout", (req, res) => {});
+app.post("/api/logout", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
+});
 
 // listing ID image
 // app.get("/api/listings/:id/img", (req, res) => {
