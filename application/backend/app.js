@@ -48,6 +48,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: "utf8mb4",
+  connectTimeout: 60000, // Add this (60 seconds)
+  acquireTimeout: 60000, // Add this (60 seconds)
+  timeout: 60000, // Add this (60 seconds)
 });
 pool.query = util.promisify(pool.query);
 
@@ -74,6 +77,61 @@ app.get("/api/db-test", (req, res) => {
     }
     res.json({ message: "Database connected!", results });
   });
+});
+
+// Replace your current /api/user/:uuid endpoint with this:
+app.get("/api/user/:uuid", async (req, res) => {
+  const uuid = req.params.uuid;
+
+  try {
+    // Step 1: Get the user information
+    const userQuery =
+      "SELECT uuid, username, email, full_name, about_me FROM users WHERE uuid = ?";
+    const userResults = await pool.query(userQuery, [uuid]);
+
+    if (userResults.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = userResults[0];
+
+    // Step 2: Get user's listings
+    const listingsQuery = `
+      SELECT 
+        l.listing_id, 
+        l.title, 
+        l.product_desc, 
+        l.price, 
+        l.created_at,
+        l.thumbnail, 
+        l.listing_img,
+        l.categories,
+        pc.categories as category_name
+      FROM 
+        listings l
+      LEFT JOIN 
+        products_categories pc ON l.categories = pc.index_id
+      WHERE 
+        l.seller_id = ?
+    `;
+    const listingsResults = await pool.query(listingsQuery, [uuid]);
+
+    // Default rating
+    const defaultRating = "0.0";
+
+    // Combine the results
+    return res.status(200).json({
+      message: "User Found",
+      seller: {
+        ...user,
+        rating: defaultRating,
+      },
+      products: listingsResults,
+    });
+  } catch (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
 });
 
 // User registration
@@ -177,6 +235,14 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// User logout
+app.post("/api/logout", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
+});
+
 // listing ID image
 // app.get("/api/listings/:id/img", (req, res) => {
 //   const listingId = parseInt(req.params.id);
@@ -260,6 +326,89 @@ app.post("/api/login", async (req, res) => {
     res.status(200).json({ message: "Image uploaded successfully" });
   });
 }); */
+
+// Add this endpoint to your backend server file
+
+// Create new product listing
+app.post("/api/listings", async (req, res) => {
+  // Extract listing details from request body
+  const { title, product_desc, price, categories, seller_id } = req.body;
+
+  // Basic validation
+  if (!title || !product_desc || !price || !categories || !seller_id) {
+    return res.status(400).json({
+      success: false,
+      error:
+        "Missing required fields. Title, description, price, category, and seller ID are required.",
+    });
+  }
+
+  try {
+    // Validate seller exists
+    const sellerQuery = "SELECT uuid FROM users WHERE uuid = ?";
+    const sellerResults = await pool.query(sellerQuery, [seller_id]);
+
+    if (sellerResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Seller not found. Please provide a valid seller ID.",
+      });
+    }
+
+    // Validate category exists
+    const categoryQuery =
+      "SELECT index_id FROM products_categories WHERE index_id = ?";
+    const categoryResults = await pool.query(categoryQuery, [categories]);
+
+    if (categoryResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Category not found. Please provide a valid category ID.",
+      });
+    }
+
+    // Default values for images (can be updated later via the upload endpoint)
+    const thumbnail = null;
+    const listing_img = null;
+
+    // Insert the new listing
+    const insertQuery = `
+      INSERT INTO listings (
+        title, 
+        product_desc, 
+        price, 
+        categories, 
+        seller_id,
+        thumbnail,
+        listing_img,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+
+    const result = await pool.query(insertQuery, [
+      title,
+      product_desc,
+      price,
+      categories,
+      seller_id,
+      thumbnail,
+      listing_img,
+    ]);
+
+    // Return success with the new listing ID
+    return res.status(201).json({
+      success: true,
+      message: "Listing created successfully",
+      listing_id: result.insertId,
+    });
+  } catch (err) {
+    console.error("Error creating listing:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Server error while creating listing",
+    });
+  }
+});
 
 // API upload
 app.post(
@@ -387,7 +536,6 @@ app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
-
 
 // Starting the server
 const PORT = process.env.PORT || 3001;
