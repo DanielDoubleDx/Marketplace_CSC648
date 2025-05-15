@@ -21,7 +21,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const API_BASE = "http://13.52.231.140:3001";
   //const API_BASE = "http://localhost:3001";
 
@@ -61,12 +61,12 @@ const ProductDetail = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="max-w-3xl mx-auto bg-gray-800 rounded-lg p-6 sm:p-8 mb-12 text-white">
+        {/* Product title */}
+        <h1 className="text-3xl font-bold mb-6">{product.title}</h1>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Column */}
           <div>
-            {/* Product title */}
-            <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
-
             {/* Product image */}
             <img
               src={`${API_BASE}${product.thumbnail}`}
@@ -101,9 +101,11 @@ const ProductDetail = () => {
             {/* Product price */}
             <h2 className="text-xl font-semibold mb-2">Price: ${product.price}</h2>
 
-            {/* Product description */}
+            <h3 className="text-lg font-medium mb-1">Category:</h3>
+            <p className="text-gray-300 mb-4">{product.category_name || "Uncategorized"}</p>
+
             <h3 className="text-lg font-medium mb-1">Description:</h3>
-            <p className="mb-6 text-gray-300">
+            <p className="text-gray-300 mb-6">
               {product.product_desc || "No description available."}
             </p>
 
@@ -116,6 +118,7 @@ const ProductDetail = () => {
             </Link>
           </div>
         </div>
+
       </section>
     </div>
   );
