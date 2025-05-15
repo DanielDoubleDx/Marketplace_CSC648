@@ -7,6 +7,7 @@ const Posting = () => {
     description: '',
   });
   const [photos, setPhotos] = useState([]);
+  const [previewURLs, setPreviewURLs] = useState([]);
   const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
@@ -16,6 +17,23 @@ const Posting = () => {
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     setPhotos(files);
+
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewURLs(previews);
+  };
+
+  const removeImage = (index) => {
+    const newPhotos = [...photos];
+    const newPreviews = [...previewURLs];
+
+    // Revoke object URL to free memory
+    URL.revokeObjectURL(newPreviews[index]);
+
+    newPhotos.splice(index, 1);
+    newPreviews.splice(index, 1);
+
+    setPhotos(newPhotos);
+    setPreviewURLs(newPreviews);
   };
 
   const uploadImage = async (listingId) => {
@@ -49,42 +67,38 @@ const Posting = () => {
     const isEmpty =
       !formData.title || !formData.price || !formData.description || photos.length === 0;
 
-      if (!isEmpty) {
-        try {
-          // Step 1: Create the listing
-          const listingRes = await fetch("http://localhost:3001/api/listings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-          });
-  
-          const listingData = await listingRes.json();
-  
-          if (listingRes.ok && listingData.listingId) {
-            console.log("Created listing:", listingData);
-            // 🖼️ Step 2: Upload the photo to that listing
-            await uploadImage(listingData.listingId);
-          } else {
-            console.error("Failed to create listing.");
-            alert("Failed to create listing.");
-          }
-        } catch (err) {
-          console.error("Error during submission:", err);
-          alert("An error occurred while creating the listing.");
+    if (!isEmpty) {
+      try {
+        const listingRes = await fetch("http://localhost:3001/api/listings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const listingData = await listingRes.json();
+
+        if (listingRes.ok && listingData.listingId) {
+          console.log("Created listing:", listingData);
+          await uploadImage(listingData.listingId);
+        } else {
+          console.error("Failed to create listing.");
+          alert("Failed to create listing.");
         }
+      } catch (err) {
+        console.error("Error during submission:", err);
+        alert("An error occurred while creating the listing.");
       }
+    }
   };
 
   const getInputClass = (field) =>
-    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${
-      submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
+    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
     }`;
 
   const getPhotoBoxClass = () =>
-    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${
-      submitted && photos.length === 0
-        ? 'border-red-500 border-dashed'
-        : 'border-gray-600 border-dashed hover:border-green-300'
+    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${submitted && photos.length === 0
+      ? 'border-red-500 border-dashed'
+      : 'border-gray-600 border-dashed hover:border-green-300'
     }`;
 
   return (
@@ -97,19 +111,46 @@ const Posting = () => {
           <label className="block text-lg mb-2">
             Photos <span className="text-red-500">*</span>
           </label>
-          <label className={getPhotoBoxClass()}>
-            <span className="text-4xl">＋</span>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              className="hidden"
-            />
-          </label>
+
+          {/* Only show the upload box if no preview */}
+          {previewURLs.length === 0 && (
+            <label className={getPhotoBoxClass()}>
+              <span className="text-4xl">＋</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+          )}
+
           {submitted && photos.length === 0 && (
             <p className="text-red-500 text-sm mt-1">⚠️ Photo is required.</p>
           )}
+
+          {previewURLs.length > 0 && (
+            <div className="mt-4 flex flex-col gap-4">
+              {previewURLs.map((url, idx) => (
+                <div key={idx} className="relative w-full">
+                  <img
+                    src={url}
+                    alt={`preview-${idx}`}
+                    className="w-full h-72 object-cover rounded-lg border border-gray-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full px-3 py-1 text-sm hover:bg-red-600 transition"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
         </div>
 
         {/* Title */}
