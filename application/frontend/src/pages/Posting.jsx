@@ -5,7 +5,9 @@ const Posting = () => {
     title: '',
     price: '',
     description: '',
+    category: '',
   });
+
   const [photos, setPhotos] = useState([]);
   const [previewURLs, setPreviewURLs] = useState([]);
   const [submitted, setSubmitted] = useState(false);
@@ -41,7 +43,7 @@ const Posting = () => {
     formDataObj.append("image", photos[0]); // Only the first photo is used for now
 
     try {
-      const res = await fetch(`http://localhost:3001/api/listings/${listingId}/upload`, {
+      const res = await fetch(`http://13.91.27.12:3001/api/listings/${listingId}/upload`, {
         method: "POST",
         body: formDataObj,
       });
@@ -65,11 +67,11 @@ const Posting = () => {
     setSubmitted(true);
 
     const isEmpty =
-      !formData.title || !formData.price || !formData.description || photos.length === 0;
+      !formData.title || !formData.price || !formData.description || !formData.category || photos.length === 0;
 
     if (!isEmpty) {
       try {
-        const listingRes = await fetch("http://localhost:3001/api/listings", {
+        const listingRes = await fetch("http://13.91.27.12:3001/api/listings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -79,7 +81,31 @@ const Posting = () => {
 
         if (listingRes.ok && listingData.listingId) {
           console.log("Created listing:", listingData);
+
+          // 2. Upload image to your backend (AWS)
           await uploadImage(listingData.listingId);
+
+          // 3. Add to external search API
+          const searchRes = await fetch("http://13.52.231.140:3001/api/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: formData.title,
+              price: formData.price,
+              description: formData.description,
+              category_name: formData.category,
+              listingId: listingData.listingId,
+            }),
+          });
+
+          const searchData = await searchRes.json();
+
+          if (searchRes.ok) {
+            console.log("Search index updated:", searchData);
+          } else {
+            console.error("Search index failed:", searchData);
+            alert("Listing saved, but search index update failed.");
+          }
         } else {
           console.error("Failed to create listing.");
           alert("Failed to create listing.");
@@ -92,13 +118,15 @@ const Posting = () => {
   };
 
   const getInputClass = (field) =>
-    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
+    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${
+      submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
     }`;
 
   const getPhotoBoxClass = () =>
-    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${submitted && photos.length === 0
-      ? 'border-red-500 border-dashed'
-      : 'border-gray-600 border-dashed hover:border-green-300'
+    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${
+      submitted && photos.length === 0
+        ? 'border-red-500 border-dashed'
+        : 'border-gray-600 border-dashed hover:border-green-300'
     }`;
 
   return (
@@ -150,7 +178,6 @@ const Posting = () => {
               ))}
             </div>
           )}
-
         </div>
 
         {/* Title */}
@@ -168,6 +195,24 @@ const Posting = () => {
           />
           {submitted && !formData.title && (
             <p className="text-red-500 text-sm mt-1">⚠️ Title is required.</p>
+          )}
+        </div>
+
+        {/* Category */}
+        <div className="mb-6">
+          <label className="block text-lg mb-2">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className={getInputClass('category')}
+            placeholder="Enter category name"
+          />
+          {submitted && !formData.category && (
+            <p className="text-red-500 text-sm mt-1">⚠️ Category is required.</p>
           )}
         </div>
 
