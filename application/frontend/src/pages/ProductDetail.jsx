@@ -111,7 +111,7 @@ const ProductDetail = () => {
 
             {/* Link to seller contact page */}
             <Link
-              to={`/seller`}
+              to={`/seller/${product.seller?.uuid}`}
               className="w-full md:w-1/2 text-white px-4 py-2 rounded text-center bg-green-500 hover:bg-green-600"
             >
               Contact Seller

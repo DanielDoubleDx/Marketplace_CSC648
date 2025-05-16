@@ -1,15 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
+
   function handleLogout() {
-    // Clear any authentication-related storage
-    localStorage.removeItem("token"); // adjust key name if different
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
     navigate('/');
   }
 
@@ -66,19 +72,23 @@ function Header() {
 
         {/* Right section */}
         <div className="flex items-center space-x-4 mr-24">
-          {/* Post Item */}
-          <Link to="/posting" className="hover:text-yellow-400" title="Post Item">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
+          {/* Show Post Item only if logged in */}
+          {isAuthenticated && (
+            <Link to="/posting" className="hover:text-yellow-400" title="Post Item">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </Link>
+          )}
 
-          {/* Login */}
-          <Link to="/login" className="hover:text-yellow-400" title="Account">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </Link>
+          {/* Show Login only if NOT logged in */}
+          {!isAuthenticated && (
+            <Link to="/login" className="hover:text-yellow-400" title="Account">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </Link>
+          )}
 
           {/* Hamburger button */}
           <div className="relative">
@@ -114,15 +124,19 @@ function Header() {
                 >
                   ℹ️ About
                 </Link>
-                <button
-                  onClick={() => {
-                    closeMenu();
-                    handleLogout();
-                  }}
-                  className="block hover:text-yellow-400"
-                >
-                  🏃‍♂️ Logout
-                </button>
+
+                {/* Logout only if authenticated */}
+                {isAuthenticated && (
+                  <button
+                    onClick={() => {
+                      closeMenu();
+                      handleLogout();
+                    }}
+                    className="block hover:text-yellow-400"
+                  >
+                    🏃‍♂️ Logout
+                  </button>
+                )}
               </div>
             )}
           </div>
