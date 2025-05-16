@@ -453,9 +453,12 @@ app.get("/api/search", (req, res) => {
   // Base SQL query
   // Combining title and description for search
   let sql = `
-  SELECT l.*, pc.categories as category_name
+  SELECT l.*,
+  pc.categories as category_name,
+  u.uuid AS seller_uuid
   FROM listings l
   JOIN products_categories pc ON l.categories = pc.index_id
+  JOIN users u ON l.seller_id = u.id
   WHERE 1=1
   `;
   /*
