@@ -23,7 +23,7 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
-  //const API_BASE = "http://localhost:3001";
+  // const API_BASE = "http://localhost:3001";
 
   useEffect(() => {
     setLoading(true);
@@ -31,13 +31,12 @@ const ProductDetail = () => {
 
     const fetchProduct = async () => {
       try {
-        // Fetch the product list from API
-        const response = await fetch("http://13.52.231.140:3001/api/search");
+        const response = await fetch(`${API_BASE}/api/search`);
         const data = await response.json();
         const foundProduct = data.items.find((p) => String(p.listing_id) === id);
         setProduct(foundProduct);
       } catch (err) {
-        setError("Failed to fetch product."); // Set error message if fetch fails
+        setError("Failed to fetch product.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -74,24 +73,36 @@ const ProductDetail = () => {
               className="w-full h-[300px] object-cover mb-4 border rounded-lg"
             />
 
-            {/* Seller name and rating */}
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold">Seller Rating</h3>
-              <p className="text-gray-300">{product.seller?.name || "Unknown"}</p>
-              {/* Star rating display */}
-              <div className="flex mt-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <span
-                    key={i}
-                    className={
-                      i <= (product.seller?.rating ?? 0)
-                        ? "text-yellow-400"
-                        : "text-gray-600"
-                    }
-                  >
-                    ★
-                  </span>
-                ))}
+            {/* Seller info */}
+            <div className="mt-4 grid grid-cols-[100px_1fr] gap-4 items-center">
+              {/* Avatar linked to message page */}
+              <Link to="/seller">
+                <img
+                  src="/images/avatar.png"
+                  alt="Seller Avatar"
+                  className="w-[100px] h-[100px] object-cover rounded-full border hover:opacity-80 transition"
+                />
+              </Link>
+
+              {/* Seller details */}
+              <div>
+                <h3 className="text-lg font-semibold">Seller </h3>
+                <p className="text-gray-300">{product.seller?.name || "Unknown"}</p>
+                <div className="flex mt-1 space-x-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <span
+                      key={i}
+                      className={
+                        i <= (product.seller?.rating ?? 0)
+                          ? "text-yellow-400"
+                          : "text-gray-600"
+                      }
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span className="text-gray-400 ml-1">({product.seller?.rating ?? 0})</span>
+                </div>
               </div>
             </div>
           </div>
@@ -109,16 +120,15 @@ const ProductDetail = () => {
               {product.product_desc || "No description available."}
             </p>
 
-            {/* Link to seller contact page */}
+            {/* Contact seller button */}
             <Link
-              to={`/seller/${product.seller?.uuid}`}
+              to="/message"
               className="w-full md:w-1/2 text-white px-4 py-2 rounded text-center bg-green-500 hover:bg-green-600"
             >
               Contact Seller
             </Link>
           </div>
         </div>
-
       </section>
     </div>
   );
