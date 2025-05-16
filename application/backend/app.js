@@ -454,13 +454,14 @@ app.get("/api/search", (req, res) => {
   // Combining title and description for search
   let sql = `
   SELECT l.*,
-  pc.categories as category_name,
+  pc.categories AS category_name,
   u.uuid AS seller_uuid
   FROM listings l
   JOIN products_categories pc ON l.categories = pc.index_id
-  JOIN users u ON l.seller_id = u.id
+  JOIN users u ON l.seller_id = u.uuid
   WHERE 1=1
-  `;
+`;
+
   /*
   It is good to use  parameterized queries to prevent SQL injection.
   However, I recommend validating inputs like category and query to ensure 
