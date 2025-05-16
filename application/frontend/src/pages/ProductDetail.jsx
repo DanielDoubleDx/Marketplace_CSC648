@@ -19,6 +19,7 @@ function ProductDetailSkeleton() {
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [seller, setSeller] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,25 +27,41 @@ const ProductDetail = () => {
   // const API_BASE = "http://localhost:3001";
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/search`);
-        const data = await response.json();
-        const foundProduct = data.items.find((p) => String(p.listing_id) === id);
-        setProduct(foundProduct);
-      } catch (err) {
-        setError("Failed to fetch product.");
-        console.error(err);
-      } finally {
-        setLoading(false);
+      const response = await fetch(`${API_BASE}/api/search`);
+      const data = await response.json();
+      const foundProduct = data.items.find((p) => String(p.listing_id) === id);
+      setProduct(foundProduct);
+
+      if (foundProduct && foundProduct.seller_id) {
+        fetchSeller(foundProduct.seller_id);
       }
-    };
+    } catch (err) {
+      setError("Failed to fetch product.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchProduct();
-  }, [id]);
+  const fetchSeller = async (sellerId) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/user/${sellerId}`);
+      const data = await response.json();
+      if (data.seller) {
+        setSeller(data.seller);
+      }
+    } catch (err) {
+      console.error("Failed to fetch seller info:", err);
+    }
+  };
+
+  fetchProduct();
+}, [id]);
 
   // Show loading skeleton while fetching
   if (loading) return <ProductDetailSkeleton />;
@@ -75,8 +92,8 @@ const ProductDetail = () => {
 
             {/* Seller info */}
             <div className="mt-4 grid grid-cols-[100px_1fr] gap-4 items-center">
-              {/* Avatar linked to message page */}
-              <Link to="/seller">
+              {/* Avatar */}
+              <Link to={`/seller/${seller?.uuid || 5}`}>
                 <img
                   src="/images/avatar.png"
                   alt="Seller Avatar"
@@ -86,14 +103,14 @@ const ProductDetail = () => {
 
               {/* Seller details */}
               <div>
-                <h3 className="text-lg font-semibold">Seller </h3>
-                <p className="text-gray-300">{product.seller?.name || "Unknown"}</p>
+                <h3 className="text-lg font-semibold">Seller</h3>
+                <p className="text-gray-300">{seller?.full_name || "Unknown"}</p>
                 <div className="flex mt-1 space-x-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <span
                       key={i}
                       className={
-                        i <= (product.seller?.rating ?? 0)
+                        i <= parseFloat(seller?.rating || 0)
                           ? "text-yellow-400"
                           : "text-gray-600"
                       }
@@ -101,7 +118,9 @@ const ProductDetail = () => {
                       ★
                     </span>
                   ))}
-                  <span className="text-gray-400 ml-1">({product.seller?.rating ?? 0})</span>
+                  <span className="text-gray-400 ml-1">
+                    ({parseFloat(seller?.rating || 0)})
+                  </span>
                 </div>
               </div>
             </div>
