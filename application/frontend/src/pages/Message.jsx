@@ -29,11 +29,39 @@ function Message() {
   const fetchMessages = async () => {
     try {
       const response = await axios.get('http://13.91.27.12:3001/api/messages');
+      const rawData = response.data;
+
+      const normalizedData = [];
+      rawData.forEach((entry)=>{
+        const senderMessages = entry.sender_text?.split('|') || [];
+        const receiverMessages = entry.receiver_text?.split('|') || []
+        senderMessages.forEach((text, index) => {
+          if (text.trim()) {
+            normalizedMessages.push({
+              id: `s-${entry.sender}-${entry.receiver}-${index}`,
+              sender: entry.sender,
+              receiver: entry.receiver,
+              text: text.trim(),
+            });
+          }
+        });
+        receiverMessages.forEach((text, index) => {
+          if (text.trim()) {
+            normalizedMessages.push({
+              id: `r-${entry.receiver}-${entry.sender}-${index}`,
+              sender: entry.receiver,
+              receiver: entry.sender,
+              text: text.trim(),
+            });
+          }
+        });
+      });
       setAllMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
+  
 
   const sendMessage = async () => {
     //console.log('Sending message:', message);
