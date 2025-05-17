@@ -1,21 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import axios from 'axios';
-import { use } from 'react';
 
 // Generate users
 const users = Array.from({ length: 1 }).map((_, i) => ({
   id: i + 1,
   name: `User ${i + 1}`,
 }));
-
-
-// Generate messages
-const allMessages = Array.from({ length: 2 }).map((_, i) => ({
-  id: i + 1,
-  text: i % 2 === 0 ? `Buyer message #${i + 1}` : `Seller message #${i + 1}`,
-  sender: i % 2 === 0 ? 'buyer' : 'seller',
-}));
-
 
 
 function Message() {
@@ -28,17 +18,19 @@ function Message() {
   useEffect(() => {
     fetchMessages();
   }, []);
+
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/messages'); 
-      setAllMessages(response.data); 
+      const response = await axios.get('http://localhost:3000/api/messages');
+      setAllMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
+
   const sendMessage = async () => {
     //console.log('Sending message:', message);
-    if(!message.trim()) return;
+    if (!message.trim()) return;
     const newMessage = {
       text: message,
       sender: 'buyer',
@@ -52,12 +44,13 @@ function Message() {
       console.error('Error sending message:', error);
     }
   };
+
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(() => {
       //console.log('Fetching messages...');
       fetchMessages();
-    }, 5000); // 5 seccond fetch
+    }, 5000); // fetch every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -108,8 +101,7 @@ function Message() {
       <div className="flex-1 flex flex-col bg-gray-800 text-white max-h-[80vh]">
         {/* Top Bar */}
         <div className="p-4 border-b border-gray-700 flex-shrink-0 font-semibold text-lg">
-          Contact Name
-          {users.id}
+          Contact Name {users[0]?.name}
         </div>
 
         {/* Messages Area */}
@@ -157,8 +149,10 @@ function Message() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-          <button className="bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-green-600 transition text-sm font-semibold"
-            onClick={sendMessage}>
+          <button
+            className="bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-green-600 transition text-sm font-semibold"
+            onClick={sendMessage}
+          >
             Send
           </button>
         </div>
