@@ -364,20 +364,21 @@ app.post("/api/messaging", async (req, res) => {
   console.log(sender_text);
   console.log(receiver_text);
   if(sender_text === undefined) {
-    receiver_text = receiver_text.replace('|','');
+    new_receiver_text = receiver_text.replace('|','') + '|';
+    console.log(new_receiver_text);
     const sql = `
       UPDATE messaging
       SET receiver_text = CONCAT(receiver_text, ?)
       WHERE receiver = ? AND sender = ?
     `;
-    pool.query(sql, [receiver_text, sender, receiver], (err, results) => {
+    pool.query(sql, [new_receiver_text, sender, receiver], (err, results) => {
       if (err) {
         console.error('Error executing query:', err);
         return;
       }
       console.log('Rows affected:', results.affectedRows);
     });
-    res.sendStatus(200);
+    return res.sendStatus(200);
   }
   sender_text = sender_text.replace('|','');
   const sql = `
