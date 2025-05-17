@@ -346,7 +346,7 @@ app.get("/api/messaging", (req, res) => {
     }
     res.json(results);
   });
-  res.statusCode(500);
+  res.sendStatus(500);
 });
 
 
