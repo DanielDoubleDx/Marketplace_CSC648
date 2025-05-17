@@ -336,18 +336,17 @@ app.get("/api/messaging/:uuid", (req, res) => {
     return res.status(400).json({ error: "UUID is missing from parameter" });
   }
   const sql = `
-  SELECT sender, receiver, sender_text, , receiver_text
+  SELECT sender, receiver, sender_text, receiver_text
   FROM messaging
   WHERE receiver = ? OR sender = ?
   `;
-  pool.query(sql, [uuid], (err, results) => {
+  pool.query(sql, [uuid, uuid], (err, results) => {
     if (err) {
       console.error("Database error:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return;
     }
     res.json(results);
   });
-  res.sendStatus(500);
 });
 
 
