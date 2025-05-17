@@ -1,16 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Posting = () => {
   const [formData, setFormData] = useState({
     title: '',
     price: '',
-    description: '',
+    product_desc: '',
     category: '',
   });
 
   const [photos, setPhotos] = useState([]);
   const [previewURLs, setPreviewURLs] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('http://13.52.231.140:3001/api/search');
+        const data = await res.json();
+        const items = data.items || [];
+
+        const uniqueCategories = Array.from(
+          new Set(items.map((item) => item.category_name))
+        ).map((name) => ({ category_name: name }));
+
+        setCategories(uniqueCategories);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,18 +46,14 @@ const Posting = () => {
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     setPhotos(files);
-
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setPreviewURLs(previews);
+    setPreviewURLs(files.map((file) => URL.createObjectURL(file)));
   };
 
   const removeImage = (index) => {
     const newPhotos = [...photos];
     const newPreviews = [...previewURLs];
 
-    // Revoke object URL to free memory
     URL.revokeObjectURL(newPreviews[index]);
-
     newPhotos.splice(index, 1);
     newPreviews.splice(index, 1);
 
@@ -38,82 +61,58 @@ const Posting = () => {
     setPreviewURLs(newPreviews);
   };
 
-  const uploadImage = async (listingId) => {
-    const formDataObj = new FormData();
-    formDataObj.append("image", photos[0]); // Only the first photo is used for now
-
-    try {
-      const res = await fetch(`http://13.91.27.12:3001/api/listings/${listingId}/upload`, {
-        method: "POST",
-        body: formDataObj,
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        console.log("Upload success:", data);
-        alert("Listing and image uploaded successfully!");
-      } else {
-        console.error("Upload error:", data);
-        alert("Image upload failed.");
-      }
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("An error occurred during image upload.");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
 
+    if (!isLoggedIn) {
+      alert('You must be logged in to publish your product.');
+      return;
+    }
+
     const isEmpty =
-      !formData.title || !formData.price || !formData.description || !formData.category || photos.length === 0;
+      !formData.title || !formData.price || !formData.product_desc || !formData.category || photos.length === 0;
 
-    if (!isEmpty) {
-      try {
-        const listingRes = await fetch("http://13.91.27.12:3001/api/listings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
+    if (isEmpty) return;
 
-        const listingData = await listingRes.json();
+    try {
+      console.log('📦 Submitting Listing Data...');
+      console.log('Title:', formData.title);
+      console.log('Price:', formData.price);
+      console.log('Description:', formData.product_desc);
+      console.log('Category:', formData.category);
+      console.log('Photos:', photos);
 
-        if (listingRes.ok && listingData.listingId) {
-          console.log("Created listing:", listingData);
+      // Simulate listing creation
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const fakeListingId = 999;
 
-          // 2. Upload image to your backend (AWS)
-          await uploadImage(listingData.listingId);
+      console.log(`✅ Mock listing created with ID: ${fakeListingId}`);
 
-          // 3. Add to external search API
-          const searchRes = await fetch("http://13.52.231.140:3001/api/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: formData.title,
-              price: formData.price,
-              description: formData.description,
-              category_name: formData.category,
-              listingId: listingData.listingId,
-            }),
-          });
-
-          const searchData = await searchRes.json();
-
-          if (searchRes.ok) {
-            console.log("Search index updated:", searchData);
-          } else {
-            console.error("Search index failed:", searchData);
-            alert("Listing saved, but search index update failed.");
-          }
-        } else {
-          console.error("Failed to create listing.");
-          alert("Failed to create listing.");
-        }
-      } catch (err) {
-        console.error("Error during submission:", err);
-        alert("An error occurred while creating the listing.");
+      // Simulate image upload
+      if (photos.length > 0) {
+        console.log(`🖼 Mock uploading image for listing ID: ${fakeListingId}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log('✅ Mock image upload complete');
       }
+
+      // Simulate updating search index
+      const searchPayload = {
+        title: formData.title,
+        price: formData.price,
+        product_desc: formData.product_desc,
+        category_name: formData.category,
+        listingId: fakeListingId,
+      };
+
+      console.log('🔍 Mock updating search index with:', searchPayload);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('✅ Mock search index updated');
+
+      alert('Mock listing created successfully! Check your console logs (F12).');
+    } catch (err) {
+      console.error('Submission error:', err);
+      alert('An error occurred while simulating listing creation.');
     }
   };
 
@@ -132,7 +131,7 @@ const Posting = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8 flex flex-col items-center">
       <section className="w-full max-w-2xl bg-gray-800 rounded-lg p-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">Posting items</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">Posting product</h1>
 
         {/* Photo Upload */}
         <div className="mb-6">
@@ -140,7 +139,6 @@ const Posting = () => {
             Photos <span className="text-red-500">*</span>
           </label>
 
-          {/* Only show the upload box if no preview */}
           {previewURLs.length === 0 && (
             <label className={getPhotoBoxClass()}>
               <span className="text-4xl">＋</span>
@@ -203,14 +201,19 @@ const Posting = () => {
           <label className="block text-lg mb-2">
             Category <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
+          <select
             name="category"
             value={formData.category}
             onChange={handleChange}
             className={getInputClass('category')}
-            placeholder="Enter category name"
-          />
+          >
+            <option value="">Select a category</option>
+            {categories.map((cat, idx) => (
+              <option key={idx} value={cat.category_name}>
+                {cat.category_name}
+              </option>
+            ))}
+          </select>
           {submitted && !formData.category && (
             <p className="text-red-500 text-sm mt-1">⚠️ Category is required.</p>
           )}
@@ -240,23 +243,35 @@ const Posting = () => {
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
-            name="description"
+            name="product_desc"
             rows="5"
-            value={formData.description}
+            value={formData.product_desc}
             onChange={handleChange}
-            className={getInputClass('description') + ' resize-none'}
+            className={getInputClass('product_desc') + ' resize-none'}
             placeholder="Describe your item"
           />
-          {submitted && !formData.description && (
+          {submitted && !formData.product_desc && (
             <p className="text-red-500 text-sm mt-1">⚠️ Description is required.</p>
           )}
         </div>
 
+        {/* Login warning */}
+        {!isLoggedIn && (
+          <p className="text-yellow-400 mb-4 text-center">
+            You must be logged in to publish a product.
+          </p>
+        )}
+
         {/* Button */}
         <div className="flex justify-center">
           <button
-            className="bg-green-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-green-600 transition"
+            className={`${
+              !isLoggedIn
+                ? 'bg-gray-600 cursor-not-allowed'
+                : 'bg-green-500 hover:bg-green-600'
+            } text-white font-semibold px-8 py-3 rounded-lg transition`}
             onClick={handleSubmit}
+            disabled={!isLoggedIn}
           >
             Publish
           </button>
