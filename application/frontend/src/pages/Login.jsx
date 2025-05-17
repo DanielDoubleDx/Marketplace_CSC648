@@ -18,7 +18,7 @@ function Login() {
     // Proceed only if both identifier and password are filled
     if (identifier && password) {
       try {
-        // Make API POST request
+        // Send POST request to login API
         const response = await fetch('http://13.52.231.140:3001/api/login', {
           method: 'POST',
           headers: {
@@ -27,26 +27,58 @@ function Login() {
           body: JSON.stringify({ identifier, password }),
         });
 
-        // If login is successful
         if (response.ok) {
           const data = await response.json();
-          console.log('Login successful:', data);
-          alert("Login successful!");
+          console.log('Login response data:', data);
 
-          // After successful login, redirect to Home page
-          navigate('/');
+          // Validate response structure
+          if (!data.user) {
+            console.error('Invalid response structure:', data);
+            throw new Error('Invalid response structure');
+          }
 
-        }
-        // If user not found
-        else if (response.status === 404) {
+          // Generate mock token since backend does not return a real one
+          const mockToken = 'mock_token_' + Date.now();
+
+          // Save token and user information to localStorage
+          localStorage.setItem('token', mockToken);
+          localStorage.setItem('user', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            username: data.user.username,
+            full_name: data.user.fullName,
+            status: 'active'
+          }));
+
+          // Dispatch custom login event to update Header state
+          const loginEvent = new CustomEvent('userLogin', {
+            detail: {
+              user: {
+                id: data.user.id,
+                email: data.user.email,
+                username: data.user.username,
+                full_name: data.user.fullName,
+                status: 'active'
+              }
+            },
+            bubbles: true,
+            composed: true
+          });
+          window.dispatchEvent(loginEvent);
+
+          // Wait briefly to ensure event is handled
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          // Redirect to homepage
+          navigate('/', { replace: true });
+        } else if (response.status === 404) {
+          // If user is not found
           setErrorMessage('⚠️ User not found. Please check your email or username.');
-        }
-        // If password is incorrect
-        else if (response.status === 401) {
+        } else if (response.status === 401) {
+          // If password is incorrect
           setErrorMessage('⚠️ Incorrect password. Please try again.');
-        }
-        // Failure
-        else {
+        } else {
+          // Generic login failure
           setErrorMessage('⚠️ Login failed. Please try again later.');
         }
       } catch (error) {
@@ -65,6 +97,7 @@ function Login() {
       <section className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-12">
         <h2 className="text-3xl font-bold text-center text-white mb-8">LOGIN</h2>
 
+        {/* Display error message */}
         {errorMessage && (
           <div className="bg-red-600 text-white text-sm p-3 rounded mb-4">
             {errorMessage}
@@ -73,7 +106,7 @@ function Login() {
 
         {/* Login form */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Identifier field */}
+          {/* Identifier input field */}
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="identifier">
               Email or Username <span className="text-red-500">*</span>
@@ -92,7 +125,7 @@ function Login() {
             )}
           </div>
 
-          {/* Password field */}
+          {/* Password input field */}
           <div>
             <label className="block text-sm font-medium text-white mb-2" htmlFor="password">
               Password <span className="text-red-500">*</span>
@@ -107,13 +140,14 @@ function Login() {
                 className={inputClass(password)}
                 placeholder="Enter your password"
               />
-              {/* Toggle show/hide password */}
+              {/* Show/hide password toggle button */}
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
+                  // Eye off icon
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -123,6 +157,7 @@ function Login() {
                     />
                   </svg>
                 ) : (
+                  // Eye icon
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -146,7 +181,7 @@ function Login() {
             )}
           </div>
 
-          {/* Remember me and Forgot password link */}
+          {/* Remember me checkbox and Forgot password link */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -175,7 +210,7 @@ function Login() {
           </button>
         </form>
 
-        {/* Sign up button */}
+        {/* Sign up link */}
         <p className="mt-6 text-center text-sm text-gray-400">
           Don't have an account?{' '}
           <Link to="/register" className="text-green-500 hover:text-green-600">
