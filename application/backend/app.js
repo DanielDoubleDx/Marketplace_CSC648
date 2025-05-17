@@ -380,13 +380,14 @@ app.post("/api/messaging", async (req, res) => {
     });
     return res.sendStatus(200);
   }
-  sender_text = sender_text.replace('|','');
+  new_sender_text = sender_text.replace('|','') + '|';
+  console.log(new_sender_text);
   const sql = `
     UPDATE messaging
     SET sender_text = CONCAT(sender_text, ?)
     WHERE receiver = ? AND sender = ?
   `;
-  pool.query(sql, [sender_text, sender, receiver], (err, results) => {
+  pool.query(sql, [new_sender_text, sender, receiver], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
       return;
