@@ -330,16 +330,16 @@ app.post("/api/logout", (req, res) => {
 // Add this endpoint to your backend server file
 
 app.get("/api/messaging", (req, res) => {
-  const { sender, receiver } = req.body;
-  if (!receiver || !sender) {
-    return res.status(400).json({ error: "Missing receiver or sender query parameter" });
+  const { uuid } = req.body;
+  if (!uuid) {
+    return res.status(400).json({ error: "UUID is missing from parameter" });
   }
   const sql = `
-  SELECT receiver_text, sender_text
+  SELECT sender, receiver, sender_text, , receiver_text
   FROM messaging
-  WHERE receiver = ? AND sender = ?
+  WHERE receiver = ? OR sender = ?
   `;
-  pool.query(sql, [receiver, sender], (err, results) => {
+  pool.query(sql, [uuid], (err, results) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ error: "Internal server error" });
