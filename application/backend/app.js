@@ -364,6 +364,7 @@ app.post("/api/messaging", async (req, res) => {
   console.log(sender_text);
   console.log(receiver_text);
   if(sender_text === undefined) {
+    receiver_text = receiver_text.replace('|','');
     const sql = `
       UPDATE messaging
       SET receiver_text = CONCAT(receiver_text, ?)
@@ -378,7 +379,7 @@ app.post("/api/messaging", async (req, res) => {
     });
     res.sendStatus(200);
   }
-
+  sender_text = sender_text.replace('|','');
   const sql = `
     UPDATE messaging
     SET sender_text = CONCAT(sender_text, ?)
