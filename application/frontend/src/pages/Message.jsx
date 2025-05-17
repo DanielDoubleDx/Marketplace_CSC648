@@ -1,19 +1,26 @@
 import React, { useRef, useEffect, useState } from 'react';
 import axios from 'axios';
 
+
 // Generate users
-const users = Array.from({ length: 1 }).map((_, i) => ({
-  id: i + 1,
-  name: `User ${i + 1}`,
+const users = Array.from({ length: 10 }).map((_, i) => ({
+  id: i,
+  name: `User ${i}`,
 }));
 
 
-function Message() {
+
+
+function Message() { 
   const bottomRef = useRef(null);
   const scrollRef = useRef(null);
   const [message, setMessage] = useState("");
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
+  //test user id 1
+  const [userId, setUserId] = useState(1);
+  //default chat
+  const [selectedUser, setSelectedUser] = useState(users[0]); 
 
   useEffect(() => {
     fetchMessages();
@@ -21,7 +28,7 @@ function Message() {
 
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/messages');
+      const response = await axios.get('http://13.91.27.12:3001/api/messages');
       setAllMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -33,10 +40,11 @@ function Message() {
     if (!message.trim()) return;
     const newMessage = {
       text: message,
-      sender: 'buyer',
+      sender: userId,
+      receiver: selectedUser.id,
     };
     try {
-      const response = await axios.post('http://localhost:3000/api/messages', newMessage);
+      const response = await axios.post('http://13.91.27.12:3001/api/messages', newMessage);
       setAllMessages((prevMessages) => [...prevMessages, response.data]);
       setMessage('');
       console.log('Message sent:', response.data);
@@ -89,6 +97,7 @@ function Message() {
           {users.map((user) => (
             <div
               key={user.id}
+              onClick={() => setSelectedUser(user)}
               className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 transition whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {user.name}
@@ -101,7 +110,7 @@ function Message() {
       <div className="flex-1 flex flex-col bg-gray-800 text-white max-h-[80vh]">
         {/* Top Bar */}
         <div className="p-4 border-b border-gray-700 flex-shrink-0 font-semibold text-lg">
-          Contact Name {users[0]?.name}
+          Contact Name: {users[selectedUser.id]?.name}
         </div>
 
         {/* Messages Area */}
@@ -114,11 +123,11 @@ function Message() {
             {allMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === 'buyer' ? 'justify-start' : 'justify-end'}`}
+                className={`flex ${msg.sender === userId ? 'justify-start' : 'justify-end'}`}
               >
                 <div
                   className={`${
-                    msg.sender === 'buyer' ? 'bg-gray-700' : 'bg-green-600'
+                    msg.sender === userId ? 'bg-gray-700' : 'bg-green-600'
                   } p-3 rounded-lg max-w-xs md:max-w-md break-words`}
                 >
                   {msg.text}
