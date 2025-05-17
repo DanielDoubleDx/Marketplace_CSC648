@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom'; // <-- Added Link here
 
 function SellerDetail() {
   const { username } = useParams();
@@ -114,7 +114,8 @@ function SellerDetail() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             {products.map((product) => (
-              <div
+              <Link
+                to={`/product/${product.listing_id}`}
                 key={product.listing_id}
                 className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition duration-300"
               >
@@ -130,7 +131,7 @@ function SellerDetail() {
                   <p className="text-gray-400 text-sm">${product.price}</p>
                   <p className="text-gray-500 text-xs">{product.category_name}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
