@@ -143,6 +143,13 @@ function Message() {
     }
   };
   
+  const filteredMessages = selectedUser
+  ? allMessages.filter(
+      (msg) =>
+        (msg.sender === userId && msg.receiver === selectedUser.id) ||
+        (msg.sender === selectedUser.id && msg.receiver === userId)
+    )
+  : [];
 
   return (
     <div className="container mx-auto h-[80vh] text-sm font-sans flex flex-col md:flex-row py-4">
@@ -176,7 +183,7 @@ function Message() {
             onScroll={handleScroll}
             className="overflow-y-auto p-4 space-y-4 h-full"
           >
-            {allMessages.map((msg) => (
+            {filteredMessages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex ${msg.sender === userId ? 'justify-start' : 'justify-end'}`}
