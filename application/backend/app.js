@@ -329,8 +329,9 @@ app.post("/api/logout", (req, res) => {
 
 // Add this endpoint to your backend server file
 
-app.get("/api/messaging", (req, res) => {
-  const { uuid } = req.body;
+// Send the users messages, HAS NO SECURITY!!! 
+app.get("/api/messaging/:uuid", (req, res) => {
+  const uuid = req.params.uuid;
   if (!uuid) {
     return res.status(400).json({ error: "UUID is missing from parameter" });
   }
