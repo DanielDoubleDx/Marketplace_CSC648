@@ -360,6 +360,24 @@ app.post("/api/messaging", async (req, res) => {
   }
   console.log(sender_text);
   console.log(receiver_text);
+
+  const sql_check = `SELECT * FROM messaging WHERE sender = ? AND receiver = ?`
+  pool.query(sql_check, [sender, receiver], (err, results) => {
+    if(results.length === 0) {
+      const sql = `INSERT INTO messaging (sender, receiver, sender_text, receiver_text) VALUES (?,?,?,?)`;
+      pool.query(sql, [sender, receiver, '', ''], (err, results) => {
+        if(results.affectedRows === 0) {
+          console.log("insertion failed, returning early");
+          return;
+        }
+        console.log("New Row Created");
+      });
+    }
+  });
+
+
+
+
   if(sender_text === undefined) {
     new_receiver_text = receiver_text.replace('|','') + '|';
     console.log(new_receiver_text);
