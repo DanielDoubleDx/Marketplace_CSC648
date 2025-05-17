@@ -1,37 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom'; // <-- Added Link here
+import { useParams, Link } from 'react-router-dom';
 
 function SellerDetail() {
-  const { username } = useParams();
-  const { sellerId } = useParams(); // sellerId = uuid from URL
+  const { sellerId, username } = useParams();
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchSeller() {
+    console.log('Fetching seller with:', { sellerId, username });
+
+    async function fetchSellerById(id) {
       try {
-        const response = await fetch(`http://13.52.231.140:3001/api/user/${sellerId}`);
-        const data = await response.json();
-
-        if (data.seller) {
-          setSeller(data.seller); // seller info like full_name, about_me, rating
-          setProducts(data.products || []); // seller's products
-        }
-      } catch (error) {
-        console.error('Failed to fetch seller data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchSeller();
-  }, [sellerId]);
-
-  useEffect(() => {
-    async function fetchSellerByUsername() {
-      try {
-        const response = await fetch(`http://13.52.231.140:3001/api/user/username/${username}`);
+        const response = await fetch(`http://13.52.231.140:3001/api/user/${id}`);
         const data = await response.json();
 
         if (data.seller) {
@@ -39,14 +20,36 @@ function SellerDetail() {
           setProducts(data.products || []);
         }
       } catch (error) {
-        console.error('Failed to fetch seller data:', error);
+        console.error('Failed to fetch seller by ID:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchSellerByUsername();
-  }, [username]);
+    async function fetchSellerByUsername(name) {
+      try {
+        const response = await fetch(`http://13.52.231.140:3001/api/user/username/${name}`);
+        const data = await response.json();
+
+        if (data.seller) {
+          setSeller(data.seller);
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch seller by username:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (sellerId) {
+      fetchSellerById(sellerId);
+    } else if (username) {
+      fetchSellerByUsername(username);
+    } else {
+      setLoading(false);
+    }
+  }, [sellerId, username]);
 
   if (loading) return <div className="text-white">Loading...</div>;
   if (!seller) return <div className="text-red-500">Seller not found.</div>;
