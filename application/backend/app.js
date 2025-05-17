@@ -549,3 +549,85 @@ app.listen(PORT, () => {
   console.log(`Test API at: http://localhost:${PORT}/api/test`);
   console.log(`Database test at: http://localhost:${PORT}/api/db-test`);
 });
+
+// Middleware to authenticate token
+const authenticateToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    // Extract user information from token
+    const userQuery = "SELECT * FROM users WHERE id = ?";
+    const [user] = await pool.query(userQuery, [token.split('_')[1]]);
+    
+    if (!user) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    req.user = user[0];
+    next();
+  } catch (error) {
+    console.error("Auth error:", error);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
+
+// Update user information
+app.put("/api/user/update", authenticateToken, async (req, res) => {
+  try {
+    const { email, full_name, phone, address } = req.body;
+    
+    // Check if the new email already exists (if email is being changed)
+    if (email) {
+      const checkEmail = "SELECT * FROM users WHERE email = ? AND id != ?";
+      const [existingUser] = await pool.query(checkEmail, [email, req.user.id]);
+      if (existingUser.length > 0) {
+        return res.status(409).json({ error: "Email already exists" });
+      }
+    }
+
+    // Update user info in the database
+    const updateUser = `
+      UPDATE users 
+      SET email = ?, 
+          full_name = ?, 
+          phone = ?, 
+          address = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    
+    await pool.query(updateUser, [
+      email,
+      full_name,
+      phone,
+      address,
+      req.user.id
+    ]);
+
+    // Retrieve updated user info
+    const getUser = "SELECT * FROM users WHERE id = ?";
+    const [updatedUser] = await pool.query(getUser, [req.user.id]);
+
+    if (updatedUser.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Return the updated user information
+    return res.json({
+      id: updatedUser[0].id,
+      email: updatedUser[0].email,
+      username: updatedUser[0].username,
+      full_name: updatedUser[0].full_name,
+      phone: updatedUser[0].phone,
+      address: updatedUser[0].address,
+      created_at: updatedUser[0].created_at,
+      updated_at: updatedUser[0].updated_at
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
