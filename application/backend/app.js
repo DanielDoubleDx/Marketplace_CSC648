@@ -329,6 +329,73 @@ app.post("/api/logout", (req, res) => {
 
 // Add this endpoint to your backend server file
 
+app.get("/api/messaging", (req, res) => {
+  const { sender, receiver } = req.body;
+  if (!receiver || !sender) {
+    return res.status(400).json({ error: "Missing receiver or sender query parameter" });
+  }
+  const sql = `
+  SELECT receiver_text, sender_text
+  FROM messaging
+  WHERE receiver = ? AND sender = ?
+  `;
+  pool.query(sql, [receiver, sender], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json(results);
+  });
+  res.statusCode(500);
+});
+
+
+
+app.post("/api/messaging", async (req, res) => {
+  const { sender, receiver , sender_text, receiver_text } = req.body;
+  
+  if(!sender || !receiver ) {
+    return res.status(400).json({
+      success: false,
+      error:
+        "Missing required fields sender and/or reciever. Both are required.",
+    });
+  }
+  console.log(sender_text);
+  console.log(receiver_text);
+  if(sender_text === undefined) {
+    const sql = `
+      UPDATE messaging
+      SET receiver_text = CONCAT(receiver_text, ?)
+      WHERE receiver = ? AND sender = ?
+    `;
+    pool.query(sql, [receiver_text, sender, receiver], (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err);
+        return;
+      }
+      console.log('Rows affected:', results.affectedRows);
+    });
+    res.sendStatus(200);
+  }
+
+  const sql = `
+    UPDATE messaging
+    SET sender_text = CONCAT(sender_text, ?)
+    WHERE receiver = ? AND sender = ?
+  `;
+  pool.query(sql, [sender_text, sender, receiver], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return;
+    }
+    console.log('Rows affected:', results.affectedRows);
+  });
+  res.sendStatus(200);
+});
+
+
+
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
   // Extract listing details from request body
