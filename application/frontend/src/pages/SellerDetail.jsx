@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 function SellerDetail() {
-  const { uuid } = useParams();
+  const { username } = useParams();
+  const { sellerId } = useParams(); // sellerId = uuid from URL
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,20 +11,42 @@ function SellerDetail() {
   useEffect(() => {
     async function fetchSeller() {
       try {
-        const response = await fetch(`http://13.52.231.140:3001/api/user/${uuid}`);
+        const response = await fetch(`http://13.52.231.140:3001/api/user/${sellerId}`);
         const data = await response.json();
 
-        setSeller(data.seller);   // seller = { full_name, about_me, rating }
-        setProducts(data.products); // products = [{ title, listing_img }]
-        setLoading(false);
+        if (data.seller) {
+          setSeller(data.seller); // seller info like full_name, about_me, rating
+          setProducts(data.products || []); // seller's products
+        }
       } catch (error) {
         console.error('Failed to fetch seller data:', error);
+      } finally {
         setLoading(false);
       }
     }
 
     fetchSeller();
-  }, [uuid]);
+  }, [sellerId]);
+
+  useEffect(() => {
+    async function fetchSellerByUsername() {
+      try {
+        const response = await fetch(`http://13.52.231.140:3001/api/user/username/${username}`);
+        const data = await response.json();
+
+        if (data.seller) {
+          setSeller(data.seller);
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch seller data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSellerByUsername();
+  }, [username]);
 
   if (loading) return <div className="text-white">Loading...</div>;
   if (!seller) return <div className="text-red-500">Seller not found.</div>;
@@ -41,7 +64,7 @@ function SellerDetail() {
             />
           </div>
 
-          {/* Info Boxes */}
+          {/* Seller Info */}
           <div className="space-y-4">
             <div className="bg-gray-700 p-4 rounded-lg">
               <h3 className="font-semibold text-lg">Name</h3>
@@ -51,10 +74,11 @@ function SellerDetail() {
               <h3 className="font-semibold text-lg">About Me</h3>
               <p>{seller.about_me || 'No bio available.'}</p>
             </div>
+
+            {/* Rating Stars */}
             <div className="flex items-center space-x-1">
               {[1, 2, 3, 4, 5].map((i) => {
-                const fillLevel = Math.min(Math.max(seller.rating - (i - 1), 0), 1) * 100; // 0 to 100%
-
+                const fillLevel = Math.min(Math.max(parseFloat(seller.rating) - (i - 1), 0), 1) * 100;
                 return (
                   <div key={i} className="relative w-6 h-6">
                     <svg
@@ -80,28 +104,31 @@ function SellerDetail() {
               })}
               <span className="text-gray-400 ml-2">({seller.rating})</span>
             </div>
-
           </div>
         </div>
 
-        {/* Seller's Products */}
+        {/* Products Grid */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Seller's Products</h3>
+          <h3 className="text-xl font-semibold mb-4">
+            {seller.username ? `${seller.username}'s Products` : "Seller's Products"}
+          </h3>
           <div className="grid grid-cols-2 gap-4">
-            {products.map((product, index) => (
+            {products.map((product) => (
               <div
-                key={index}
+                key={product.listing_id}
                 className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition duration-300"
               >
                 <div className="aspect-square">
                   <img
-                    src={product.listing_img}
+                    src={`http://13.52.231.140:3001${product.listing_img}`}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-2 text-center">
                   <p className="font-semibold text-white">{product.title}</p>
+                  <p className="text-gray-400 text-sm">${product.price}</p>
+                  <p className="text-gray-500 text-xs">{product.category_name}</p>
                 </div>
               </div>
             ))}
