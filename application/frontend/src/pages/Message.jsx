@@ -1,12 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import axios from 'axios';
+import { use } from 'react';
 
-
+/*
 // Generate users
 const users = Array.from({ length: 10 }).map((_, i) => ({
   id: i,
   name: `User ${i}`,
 }));
+*/
 
 
 
@@ -17,10 +19,35 @@ function Message() {
   const [message, setMessage] = useState("");
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
+  const [users, setUsers] = useState([]);
+  /*
   //test user id 1
   const [userId, setUserId] = useState(1);
+  */
+  
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const [userId, setUserId] = useState(storedUser?.id || null);
   //default chat
-  const [selectedUser, setSelectedUser] = useState(users[0]); 
+  const [selectedUser, setSelectedUser] = useState(null); 
+
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://13.91.27.12:3001/api/users');
+        setUsers(response.data);
+        if(response.data.length > 0) {
+          setSelectedUser(response.data[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+
+  
 
   useEffect(() => {
     fetchMessages();
@@ -31,7 +58,7 @@ function Message() {
       const response = await axios.get('http://13.91.27.12:3001/api/messages');
       const rawData = response.data;
 
-      const normalizedData = [];
+      const normalizedMessages = [];
       rawData.forEach((entry)=>{
         const senderMessages = entry.sender_text?.split('|') || [];
         const receiverMessages = entry.receiver_text?.split('|') || []
@@ -56,7 +83,7 @@ function Message() {
           }
         });
       });
-      setAllMessages(response.data);
+      setAllMessages(normalizedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -115,12 +142,13 @@ function Message() {
       });
     }
   };
+  
 
   return (
     <div className="container mx-auto h-[80vh] text-sm font-sans flex flex-col md:flex-row py-4">
       {/* User List */}
       <div className="hidden md:block w-1/4 border-r border-gray-700 overflow-y-auto bg-gray-900 text-white p-4 max-h-[80vh]">
-        <h2 className="text-2xl font-semibold mb-4">Messages</h2>
+        <h2 className="text-2xl font-semibold mb-4">People</h2>
         <div className="space-y-2">
           {users.map((user) => (
             <div
@@ -138,7 +166,7 @@ function Message() {
       <div className="flex-1 flex flex-col bg-gray-800 text-white max-h-[80vh]">
         {/* Top Bar */}
         <div className="p-4 border-b border-gray-700 flex-shrink-0 font-semibold text-lg">
-          Contact Name: {users[selectedUser.id]?.name}
+          Contact Name: {selectedUser ? selectedUser.name : 'Loading...'}
         </div>
 
         {/* Messages Area */}
