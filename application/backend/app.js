@@ -421,10 +421,10 @@ app.post("/api/messaging", async (req, res) => {
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
   // Extract listing details from request body
-  const { title, product_desc, price, categories, seller_id } = req.body;
+  const { title, product_desc, price, categories, seller_uuid } = req.body;
 
   // Basic validation
-  if (!title || !product_desc || !price || !categories || !seller_id) {
+  if (!title || !product_desc || !price || !categories || !seller_uuid) {
     return res.status(400).json({
       success: false,
       error:
@@ -435,7 +435,7 @@ app.post("/api/listings", async (req, res) => {
   try {
     // Validate seller exists
     const sellerQuery = "SELECT uuid FROM users WHERE uuid = ?";
-    const sellerResults = await pool.query(sellerQuery, [seller_id]);
+    const sellerResults = await pool.query(sellerQuery, [seller_uuid]);
 
     if (sellerResults.length === 0) {
       return res.status(404).json({
@@ -446,7 +446,7 @@ app.post("/api/listings", async (req, res) => {
 
     // Validate category exists
     const categoryQuery =
-      "SELECT index_id FROM products_categories WHERE index_id = ?";
+      "SELECT index_id FROM products_categories WHERE categories = ?";
     const categoryResults = await pool.query(categoryQuery, [categories]);
 
     if (categoryResults.length === 0) {
@@ -478,8 +478,8 @@ app.post("/api/listings", async (req, res) => {
       title,
       product_desc,
       price,
-      categories,
-      seller_id,
+      categoryResults,
+      seller_uuid,
       thumbnail,
       listing_img,
     ]);
