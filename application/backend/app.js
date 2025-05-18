@@ -98,7 +98,7 @@ app.get("/api/user/:uuid", async (req, res) => {
   try {
     // Step 1: Get the user information
     const userQuery =
-      "SELECT uuid, username, email, full_name, about_me FROM users WHERE uuid = ?";
+      "SELECT uuid, username, email, full_name, about_me, rating FROM users WHERE uuid = ?";
     const userResults = await pool.query(userQuery, [uuid]);
 
     if (userResults.length === 0) {
@@ -135,8 +135,7 @@ app.get("/api/user/:uuid", async (req, res) => {
     return res.status(200).json({
       message: "User Found",
       seller: {
-        ...user,
-        rating: defaultRating,
+        ...user
       },
       products: listingsResults,
     });
