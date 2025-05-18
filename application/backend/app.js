@@ -416,6 +416,17 @@ app.post("/api/messaging", async (req, res) => {
   res.sendStatus(200);
 });
 
+app.get("/api/listings", async (req, res) => {
+  const sql = `SELECT * FROM listings`;
+    pool.query(sql, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return;
+    }
+    res.json(results);
+  });
+});
+
 
 
 // Create new product listing
