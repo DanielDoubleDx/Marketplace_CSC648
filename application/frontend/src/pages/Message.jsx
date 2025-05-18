@@ -1,6 +1,4 @@
 import React, { useRef, useEffect, useState } from 'react';
-import axios from 'axios';
-import { use } from 'react';
 
 /*
 // Generate users
@@ -20,10 +18,10 @@ function Message() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
   const [users, setUsers] = useState([]);
-  /*
+
   //test user id 1
-  const [userId, setUserId] = useState(1);
-  */
+  //const [userId, setUserId] = useState(1);
+
   
   const storedUser = JSON.parse(localStorage.getItem('user'));
   const [userId, setUserId] = useState(storedUser?.id || null);
@@ -34,8 +32,14 @@ function Message() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://13.91.27.12:3001/api/users');
-        setUsers(response.data);
+        //const response = await axios.get('http://13.91.27.12:3001/api/user');
+        //setUsers(response.data);
+        
+        const response = await fetch('http://13.91.27.12:3001/api/user');
+        const data = await response.json();
+        setUsers(data);
+
+        
         if(response.data.length > 0) {
           setSelectedUser(response.data[0]);
         }
@@ -55,8 +59,11 @@ function Message() {
 
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://13.91.27.12:3001/api/messages');
-      const rawData = response.data;
+      //const response = await axios.get(`http://13.91.27.12:3001/api/messaging/${userId}`);
+      //const rawData = response.data;
+      const response = await fetch(`http://13.91.27.12:3001/api/messaging/${userId}`);
+      const rawData = await response.json();
+
 
       const normalizedMessages = [];
       rawData.forEach((entry)=>{
@@ -96,11 +103,22 @@ function Message() {
     const newMessage = {
       text: message,
       sender: userId,
-      receiver: selectedUser.id,
+      receiver: selectedUser.uuid,
     };
     try {
-      const response = await axios.post('http://13.91.27.12:3001/api/messages', newMessage);
-      setAllMessages((prevMessages) => [...prevMessages, response.data]);
+      //const response = await axios.post(`http://13.91.27.12:3001/api/messaging/${userId}`, newMessage);
+      //setAllMessages((prevMessages) => [...prevMessages, response.data]);
+
+      const response = await fetch(`http://13.91.27.12:3001/api/messaging/${userId}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMessage),
+      });
+      const data = await response.json();
+      setAllMessages((prevMessages) => [...prevMessages, data]);
+
       setMessage('');
       console.log('Message sent:', response.data);
     } catch (error) {
@@ -146,8 +164,8 @@ function Message() {
   const filteredMessages = selectedUser
   ? allMessages.filter(
       (msg) =>
-        (msg.sender === userId && msg.receiver === selectedUser.id) ||
-        (msg.sender === selectedUser.id && msg.receiver === userId)
+        (msg.sender === userId && msg.receiver === selectedUser.uuid) ||
+        (msg.sender === selectedUser.uuid && msg.receiver === userId)
     )
   : [];
 
