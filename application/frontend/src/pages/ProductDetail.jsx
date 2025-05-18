@@ -93,7 +93,7 @@ const ProductDetail = () => {
             {/* Seller info */}
             <div className="mt-4 grid grid-cols-[100px_1fr] gap-4 items-center">
               {/* Avatar */}
-              <Link to={`/seller/${seller?.uuid || 5}`}>
+              <Link to={`/seller/${seller?.uuid}`}>
                 <img
                   src="/images/avatar.png"
                   alt="Seller Avatar"
