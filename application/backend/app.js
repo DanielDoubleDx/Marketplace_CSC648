@@ -79,6 +79,14 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
+app.get("/api/listings/", async (req, res) => {
+  console.log("hiii");
+  res.sendStatus(200);
+})
+
+
+
+
 // Replace your current /api/user/:uuid endpoint with this:
 app.get("/api/user/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
@@ -330,7 +338,7 @@ app.post("/api/logout", (req, res) => {
 // Add this endpoint to your backend server file
 
 // Send the users messages, HAS NO SECURITY!!! 
-app.get("/api/messaging/:uuid", (req, res) => {
+app.get("/api/messaging/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
   if (!uuid) {
     return res.status(400).json({ error: "UUID is missing from parameter" });
@@ -409,6 +417,7 @@ app.post("/api/messaging", async (req, res) => {
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
   // Extract listing details from request body
+  console.log("GOT HERE");
   const { title, product_desc, price, categories, seller_id } = req.body;
 
   // Basic validation
