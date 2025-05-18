@@ -79,10 +79,15 @@ app.get("/api/db-test", (req, res) => {
   });
 });
 
-app.get("/api/listings/", async (req, res) => {
-  console.log("hiii");
-  res.sendStatus(200);
-})
+app.get("/api/listings/:listing_id", async (req, res) => {
+  const listing_id = req.params.listing_id;
+  const sql = `SELECT * FROM listings WHERE listing_id = ?`
+  pool.query(sql, listing_id, (err, result) => {
+    if (err) 
+      return res.status(500).json({ error: err.message });
+    res.status(200).json(result);
+  });
+});
 
 
 
@@ -90,7 +95,6 @@ app.get("/api/listings/", async (req, res) => {
 // Replace your current /api/user/:uuid endpoint with this:
 app.get("/api/user/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
-
   try {
     // Step 1: Get the user information
     const userQuery =
@@ -417,7 +421,6 @@ app.post("/api/messaging", async (req, res) => {
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
   // Extract listing details from request body
-  console.log("GOT HERE");
   const { title, product_desc, price, categories, seller_id } = req.body;
 
   // Basic validation
