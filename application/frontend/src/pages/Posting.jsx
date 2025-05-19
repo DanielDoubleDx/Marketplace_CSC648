@@ -22,7 +22,7 @@ const Posting = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://13.52.231.140:3001/api/search');
+        const res = await fetch('http://localhost:3001/api/search');
         const data = await res.json();
         const items = data.items || [];
 
@@ -65,63 +65,78 @@ const Posting = () => {
     e.preventDefault();
     setSubmitted(true);
 
-    if (!isLoggedIn) {
-      alert('You must be logged in to publish your product.');
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      alert('Bạn phải đăng nhập để đăng sản phẩm.');
       return;
     }
+
+    let user;
+    try {
+      user = JSON.parse(userData);
+      if (!user || !user.uuid) {
+        alert('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      alert('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+      return;
+    }
+
+    const seller_uuid = user.uuid;
 
     const isEmpty =
       !formData.title || !formData.price || !formData.product_desc || !formData.category || photos.length === 0;
 
-    if (isEmpty) return;
+    if (isEmpty) {
+      alert('Vui lòng điền đầy đủ thông tin sản phẩm và tải lên ít nhất một ảnh.');
+      return;
+    }
+
+    const productPayload = {
+      title: formData.title,
+      product_desc: formData.product_desc,
+      price: parseFloat(formData.price),
+      categories: formData.category,
+      seller_uuid: seller_uuid,
+    };
+
+    console.log('📦 Submitting Listing Data to Backend...', productPayload);
 
     try {
-      const token = localStorage.getItem('token');
-
-      const payload = new FormData();
-      payload.append('title', formData.title);
-      payload.append('price', formData.price);
-      payload.append('product_desc', formData.product_desc);
-      payload.append('category', formData.category);
-
-      photos.forEach((photo) => {
-        payload.append('photos', photo);
-      });
-
-      const res = await fetch('http://13.52.231.140:3001/api/listings', {
+      const response = await fetch('http://localhost:3001/api/listings', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: payload,
+        body: JSON.stringify(productPayload),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to submit listing');
-      }
+      const result = await response.json();
 
-      alert('Listing created successfully!');
+      if (response.ok) {
+        console.log('✅ Listing created successfully:', result);
+        setFormData({
+          title: '',
+          price: '',
+          product_desc: '',
+          category: '',
+        });
+        setPhotos([]);
+        setPreviewURLs([]);
+        setSubmitted(false);
 
-      // Confirm by fetching and logging the listing from the database
-      const confirmRes = await fetch('http://13.52.231.140:3001/api/search');
-      const confirmData = await confirmRes.json();
-      const items = confirmData.items || [];
+        alert('Đã đăng sản phẩm thành công!');
 
-      const match = items.find(item => item.title === formData.title);
-      if (match) {
-        console.log('✅ Product successfully stored in the database:', match);
       } else {
-        console.warn('⚠️ Product submission succeeded, but not found in /api/search response.');
+        console.error('❌ Error creating listing:', result.error);
+        alert(`Lỗi khi đăng sản phẩm: ${result.error || response.statusText}`);
       }
 
-      // Reset form
-      setFormData({ title: '', price: '', product_desc: '', category: '' });
-      setPhotos([]);
-      setPreviewURLs([]);
-      setSubmitted(false);
     } catch (err) {
-      console.error('Submission error:', err);
-      alert('An error occurred while submitting the listing.');
+      console.error('Submission error (Network or Server error):', err);
+      alert('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
     }
   };
 

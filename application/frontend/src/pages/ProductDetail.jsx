@@ -24,7 +24,6 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
-  // const API_BASE = "http://localhost:3001";
 
   useEffect(() => {
   const fetchProduct = async () => {

@@ -89,16 +89,13 @@ app.get("/api/listings/:listing_id", async (req, res) => {
   });
 });
 
-
-
-
 // Replace your current /api/user/:uuid endpoint with this:
 app.get("/api/user/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
   try {
     // Step 1: Get the user information
     const userQuery =
-      "SELECT uuid, username, email, full_name, about_me, rating FROM users WHERE uuid = ?";
+      "SELECT uuid, username, email, full_name, about_me FROM users WHERE uuid = ?";
     const userResults = await pool.query(userQuery, [uuid]);
 
     if (userResults.length === 0) {
@@ -135,7 +132,8 @@ app.get("/api/user/:uuid", async (req, res) => {
     return res.status(200).json({
       message: "User Found",
       seller: {
-        ...user
+        ...user,
+        rating: defaultRating,
       },
       products: listingsResults,
     });
@@ -234,7 +232,8 @@ app.post("/api/login", async (req, res) => {
     return res.status(200).json({
       message: "Login successful",
       user: {
-        id: user.id,
+        id: user.uuid,
+        uuid: user.uuid,
         email: user.email,
         username: user.username,
         fullName: user.full_name,
@@ -357,8 +356,6 @@ app.get("/api/messaging/:uuid", async (req, res) => {
   });
 });
 
-
-
 app.post("/api/messaging", async (req, res) => {
   const { sender, receiver , sender_text, receiver_text } = req.body;
   
@@ -386,9 +383,6 @@ app.post("/api/messaging", async (req, res) => {
     }
   });
 
-
-
-
   if(sender_text === undefined) {
     new_receiver_text = receiver_text.replace('|','') + '|';
     console.log(new_receiver_text);
@@ -414,19 +408,6 @@ app.post("/api/messaging", async (req, res) => {
   });
   res.sendStatus(200);
 });
-
-app.get("/api/listings", async (req, res) => {
-  const sql = `SELECT * FROM listings`;
-    pool.query(sql, (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return;
-    }
-    res.json(results);
-  });
-});
-
-
 
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
