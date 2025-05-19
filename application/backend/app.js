@@ -411,7 +411,7 @@ app.post("/api/messaging", async (req, res) => {
 
 app.get('/api/categories', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT index_id, categories AS category_name FROM products_categories ORDER BY index_id');
+    const rows = await pool.query('SELECT categories AS category_name FROM products_categories ORDER BY index_id');
     res.json(rows);
   } catch (err) {
     console.error('Error fetching categories:', err);
