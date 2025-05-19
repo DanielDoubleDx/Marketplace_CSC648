@@ -409,6 +409,18 @@ app.post("/api/messaging", async (req, res) => {
   res.sendStatus(200);
 });
 
+app.get("/api/categories", async (req, res) => {
+  const category = req.body;
+  const sql = `SELECT categories FROM products_categories WHERE index_id = ?`
+  pool.query(sql, [category], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return;
+    }
+    res.json(results);
+  });
+});
+
 // Create new product listing
 app.post("/api/listings", async (req, res) => {
   // Extract listing details from request body
