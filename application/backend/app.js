@@ -409,16 +409,14 @@ app.post("/api/messaging", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.get("/api/categories", async (req, res) => {
-  const category = req.body;
-  const sql = `SELECT categories FROM products_categories WHERE index_id = ?`
-  pool.query(sql, [category], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return;
-    }
-    res.json(results);
-  });
+app.get('/api/categories', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT index_id, categories AS category_name FROM products_categories ORDER BY index_id');
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
 });
 
 // Create new product listing
