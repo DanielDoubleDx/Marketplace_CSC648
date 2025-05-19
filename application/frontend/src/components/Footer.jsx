@@ -1,6 +1,8 @@
 import React from 'react';
 
+// Footer component
 function Footer() {
+  // Function to smoothly scroll the page to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

@@ -11,6 +11,7 @@ function SearchBar() {
   const location = useLocation();
   const [apiListings, setApiListings] = useState([]);
 
+  // Adjust dropdown width to match selected text
   useEffect(() => {
     if (spanRef.current && selectRef.current) {
       const textWidth = spanRef.current.offsetWidth;
@@ -18,21 +19,21 @@ function SearchBar() {
     }
   }, [category]);
 
-  // Clear search results when navigating away from home
+  // Clear search when leaving home page
   useEffect(() => {
     if (location.pathname !== "/") {
       clearSearch();
     }
   }, [location]);
 
-  // Function to clear search results
+  // Clear search results and reset inputs
   const clearSearch = () => {
     localStorage.removeItem("searchResults");
     setSearchTerm("");
     setCategory("All");
   };
 
-  // Fetch listings and extract category options from API
+  // Fetch all listings and extract unique categories
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -53,7 +54,7 @@ function SearchBar() {
     fetchListings();
   }, []);
 
-  // Handle search and navigate to home
+  // Run search and store results
   const handleSearch = () => {
     const searchTermLower = searchTerm.toLowerCase();
 
@@ -73,7 +74,7 @@ function SearchBar() {
     );
   };
 
-  // Handle Enter key press
+  // Trigger search on Enter key
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch();
@@ -106,11 +107,11 @@ function SearchBar() {
             return matchesCategory && matchesName;
           });
 
-          // Save filtered products to localStorage
+          // Save filtered results
           localStorage.setItem("searchResults", JSON.stringify(filtered));
-          // Navigate to the search results page
+          // Navigate to updated URL
           navigate(`/?search=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(selectedCategory)}`);
-          // Dispatch search completed event
+          // Fire event to notify search completion
           window.dispatchEvent(
             new CustomEvent("searchCompleted", {
               detail: { results: filtered },
@@ -134,7 +135,7 @@ function SearchBar() {
           const value = e.target.value;
           const alphanumericCount = (value.match(/[a-zA-Z0-9]/g) || []).length;
 
-          // Only allow typing if deleting or under limit
+          // Limit input to 40 alphanumeric characters
           if (alphanumericCount <= 40 || value.length < searchTerm.length) {
             setSearchTerm(value);
           }

@@ -7,15 +7,18 @@ const { authenticateToken } = require('../middleware/auth');
 router.get("/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
   try {
+    // Fetch user details by UUID
     const userQuery = "SELECT uuid, username, email, full_name, about_me FROM users WHERE uuid = ?";
     const userResults = await pool.query(userQuery, [uuid]);
 
+    // If user is not found
     if (userResults.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResults[0];
 
+    // Fetch all listings posted by the user
     const listingsQuery = `
       SELECT 
         l.listing_id, 
@@ -36,6 +39,7 @@ router.get("/:uuid", async (req, res) => {
     `;
     const listingsResults = await pool.query(listingsQuery, [uuid]);
 
+    // Respond with user info and their product listings
     return res.status(200).json({
       message: "User Found",
       seller: {
@@ -55,6 +59,7 @@ router.put("/update", authenticateToken, async (req, res) => {
   try {
     const { email, full_name, phone, address } = req.body;
     
+    // Check if email is already taken by another user
     if (email) {
       const checkEmail = "SELECT * FROM users WHERE email = ? AND id != ?";
       const [existingUser] = await pool.query(checkEmail, [email, req.user.id]);
@@ -63,6 +68,7 @@ router.put("/update", authenticateToken, async (req, res) => {
       }
     }
 
+    // Update user information
     const updateUser = `
       UPDATE users 
       SET email = ?, 
@@ -81,6 +87,7 @@ router.put("/update", authenticateToken, async (req, res) => {
       req.user.id
     ]);
 
+    // Fetch updated user data
     const getUser = "SELECT * FROM users WHERE id = ?";
     const [updatedUser] = await pool.query(getUser, [req.user.id]);
 

@@ -11,14 +11,14 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: "utf8mb4",
-  connectTimeout: 60000,
-  acquireTimeout: 60000,
-  timeout: 60000,
+  connectTimeout: 60000, // Time to wait when establishing a new connection before throwing error
+  acquireTimeout: 60000, // Time to wait for a connection from the pool
+  timeout: 60000, // General timeout setting for connections
 });
 
 pool.query = util.promisify(pool.query);
 
-// Test connection
+// Test the database connection
 pool.getConnection((err, connection) => {
   if (err) {
     console.error("RDS connection failed:", err);

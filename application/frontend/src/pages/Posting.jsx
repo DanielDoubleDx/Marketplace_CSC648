@@ -23,9 +23,10 @@ const Posting = () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
       
+      // Check if token or user data is missing
       if (!token || !userData) {
         setIsLoggedIn(false);
-        setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+        setPublishError('Invalid user info. Please log in again.');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -36,7 +37,7 @@ const Posting = () => {
         const user = JSON.parse(userData);
         if (!user || !user.id) {
           setIsLoggedIn(false);
-          setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+          setPublishError('Invalid user info. Please log in again.');
           setTimeout(() => {
             navigate('/login');
           }, 2000);
@@ -47,7 +48,7 @@ const Posting = () => {
       } catch (error) {
         console.error('Error parsing user data:', error);
         setIsLoggedIn(false);
-        setPublishError('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+        setPublishError('Error reading user info. Please log in again.');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -60,18 +61,18 @@ const Posting = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://13.52.231.140:3001/api/categories');
+        const res = await fetch('http://13.52.231.140:3001/api/search');
         const data = await res.json();
         const items = data.items || [];
 
         console.log('API Response:', data);
         console.log('Items:', items);
 
-        // Lấy danh sách categories từ kết quả search
+        // Get category list from search results
         const categoryMap = new Map();
         items.forEach(item => {
           if (item.categories && item.category_name) {
-            // Đảm bảo categories là số
+            // Make sure category ID is a number
             const categoryId = parseInt(item.categories);
             if (!isNaN(categoryId)) {
               categoryMap.set(item.category_name, categoryId);
@@ -94,16 +95,19 @@ const Posting = () => {
     fetchCategories();
   }, []);
 
+  // Handle text input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle photo upload
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     setPhotos(files);
     setPreviewURLs(files.map((file) => URL.createObjectURL(file)));
   };
 
+  // Remove selected image
   const removeImage = (index) => {
     const newPhotos = [...photos];
     const newPreviews = [...previewURLs];
@@ -116,6 +120,7 @@ const Posting = () => {
     setPreviewURLs(newPreviews);
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
@@ -123,8 +128,9 @@ const Posting = () => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
+    // Check if token or user data is missing
     if (!token || !userData) {
-      setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+      setPublishError('Invalid user info. Please log in again.');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -135,7 +141,7 @@ const Posting = () => {
     try {
       user = JSON.parse(userData);
       if (!user || !user.id) {
-        setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+        setPublishError('Invalid user info. Please log in again.');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -143,18 +149,19 @@ const Posting = () => {
       }
     } catch (error) {
       console.error('Error parsing user data:', error);
-      setPublishError('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+      setPublishError('Error reading user info. Please log in again.');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
       return;
     }
 
+    // Validate form data
     const isEmpty =
       !formData.title || !formData.price || !formData.product_desc || !formData.category || photos.length === 0;
 
     if (isEmpty) {
-      setPublishError('Vui lòng điền đầy đủ thông tin sản phẩm và tải lên ít nhất một ảnh.');
+      setPublishError('Please fill out all fields and upload at least one photo.');
       return;
     }
 
@@ -166,7 +173,7 @@ const Posting = () => {
       console.log('Selected Category:', selectedCategory);
       
       if (!selectedCategory) {
-        setPublishError('Danh mục không hợp lệ. Vui lòng chọn lại.');
+        setPublishError('Invalid category. Please choose again.');
         return;
       }
 
@@ -198,7 +205,7 @@ const Posting = () => {
         setIsPublished(true);
         setPublishError(null);
         
-        // Upload images if listing was created successfully
+        // Upload image after listing is created
         if (result.listing_id && photos.length > 0) {
           const formData = new FormData();
           formData.append('image', photos[0]);
@@ -214,6 +221,7 @@ const Posting = () => {
           }
         }
 
+        // Reset form
         setFormData({
           title: '',
           price: '',
@@ -224,23 +232,25 @@ const Posting = () => {
         setPreviewURLs([]);
         setSubmitted(false);
 
-        alert('Đã đăng sản phẩm thành công!');
+        alert('Product posted successfully!');
       } else {
         console.error('❌ Error creating listing:', result.error);
-        setPublishError(result.error || 'Lỗi khi đăng sản phẩm');
+        setPublishError(result.error || 'Error posting product');
       }
 
     } catch (err) {
       console.error('Submission error:', err);
-      setPublishError('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
+      setPublishError('Something went wrong. Please try again later.');
     }
   };
 
+  // Style input box based on error
   const getInputClass = (field) =>
     `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${
       submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
     }`;
 
+  // Style photo upload box based on error
   const getPhotoBoxClass = () =>
     `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${
       submitted && photos.length === 0

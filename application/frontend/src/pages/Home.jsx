@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-// Loading Skeleton Component
+// Loading skeleton for product cards while data is loading
 function ProductSkeleton() {
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
@@ -23,9 +23,8 @@ function Home() {
   const [error, setError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
-  //const API_BASE = "http://localhost:3001";
 
-  // Fetch data from the API
+  // Fetch all product listings from the API
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -46,10 +45,10 @@ function Home() {
     fetchData();
   }, []);
 
-  // Slice first 12 products into three rows for grid display
+  // Get the first 12 products to display on homepage
   const products = apiData?.items?.slice(0, 12) || [];
 
-  // Update search results
+  // Handle custom search event from other components
   useEffect(() => {
     const handleSearchEvent = (event) => {
       setLoading(true);
@@ -64,7 +63,7 @@ function Home() {
     return () => window.removeEventListener("searchCompleted", handleSearchEvent);
   }, []);
 
-  // React to URL query params
+  // React to changes in URL query params and update search results
   useEffect(() => {
     const search = searchParams.get("search");
     const category = searchParams.get("category");
@@ -91,10 +90,11 @@ function Home() {
     }
   }, [searchParams]);
 
+  // Render a given number of skeleton cards
   const renderSkeletons = (count) =>
     Array(count).fill(0).map((_, index) => <ProductSkeleton key={index} />);
 
-  // Function to render product card components for each product.
+  // Render a product card
   const renderProductCard = (product) => {
     const id = product.listing_id;
     const imageUrl = `${API_BASE}${product.thumbnail}`;
@@ -137,7 +137,7 @@ function Home() {
         </section>
       )}
 
-      {/* Search results section */}
+      {/* Display section for search results */}
       {searchResults && (
         <section className="mt-20 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-white">{searchTitle}</h2>
@@ -158,7 +158,7 @@ function Home() {
         </section>
       )}
 
-      {/* Display all products if no search results */}
+      {/* Display all products if not searching */}
       {!searchResults && !loading && (
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-white">All Products</h2>
@@ -175,7 +175,7 @@ function Home() {
         </section>
       )}
 
-      {/* Loading fallback for initial state */}
+      {/* Show loading skeletons while waiting for data */}
       {!searchResults && loading && (
         <section className="mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

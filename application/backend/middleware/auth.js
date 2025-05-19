@@ -1,7 +1,11 @@
 const pool = require('../config/database');
 
+// Middleware function to authenticate a user based on the token
 const authenticateToken = async (req, res, next) => {
+  // Extract the token from the Authorization header
   const token = req.headers.authorization?.split(' ')[1];
+
+  // If no token is provided, return an Unauthorized response
   if (!token) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -16,7 +20,8 @@ const authenticateToken = async (req, res, next) => {
 
     req.user = user[0];
     next();
-  } catch (error) {
+  } catch (error) { 
+    // Log the error and return an Invalid token response
     console.error("Auth error:", error);
     return res.status(401).json({ error: "Invalid token" });
   }

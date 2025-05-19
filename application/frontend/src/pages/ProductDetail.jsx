@@ -17,17 +17,18 @@ function ProductDetailSkeleton() {
 }
 
 const ProductDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [seller, setSeller] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [authError, setAuthError] = useState(null);
+  const { id } = useParams(); // get product id from URL
+  const navigate = useNavigate(); // for navigation
+  const [product, setProduct] = useState(null); // product data
+  const [seller, setSeller] = useState(null); // seller data
+  const [loading, setLoading] = useState(true); // loading state
+  const [error, setError] = useState(null); // error state
+  const [authError, setAuthError] = useState(null); // auth error
 
-  const API_BASE = "http://13.52.231.140:3001";
+  const API_BASE = "http://13.52.231.140:3001"; // base API URL
 
   useEffect(() => {
+    // fetch product info
     const fetchProduct = async () => {
       try {
         setLoading(true);
@@ -57,6 +58,7 @@ const ProductDetail = () => {
       }
     };
 
+    // fetch seller info
     const fetchSeller = async (sellerId) => {
       try {
         const response = await fetch(`${API_BASE}/api/user/${sellerId}`);
@@ -87,7 +89,7 @@ const ProductDetail = () => {
     );
   }
 
-  // Debug if fetch failed or product not found
+  // Show error if fetch failed or product not found
   if (error || !product)
     return (
       <p className="text-center text-red-500 font-semibold py-6">
@@ -126,6 +128,7 @@ const ProductDetail = () => {
               <div>
                 <h3 className="text-lg font-semibold">Seller</h3>
                 <p className="text-gray-300">{seller?.full_name || "Unknown"}</p>
+                {/* Seller rating */}
                 <div className="flex mt-1 space-x-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <span
@@ -152,9 +155,11 @@ const ProductDetail = () => {
             {/* Product price */}
             <h2 className="text-xl font-semibold mb-2">Price: ${product.price}</h2>
 
+            {/* Product category */}
             <h3 className="text-lg font-medium mb-1">Category:</h3>
             <p className="text-gray-300 mb-4">{product.category_name || "Uncategorized"}</p>
 
+            {/* Product description */}
             <h3 className="text-lg font-medium mb-1">Description:</h3>
             <p className="text-gray-300 mb-6">
               {product.product_desc || "No description available."}

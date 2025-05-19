@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 function Header() {
+  // State variables for menu toggles and user info
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
@@ -11,12 +12,12 @@ function Header() {
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
 
-  // Check login status and retrieve user information
+  // Check login status on page load
   useEffect(() => {
     const checkLoginStatus = () => {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
-      
+
       if (token && user) {
         try {
           const parsedUser = JSON.parse(user);
@@ -74,13 +75,13 @@ function Header() {
       // Clear user information from localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
+
       // Dispatch logout event
       window.dispatchEvent(new Event('userLogout'));
-      
+
       // Show logout success in console
       console.log('Logout successful!');
-      
+
       // Redirect to home page
       navigate('/');
     } catch (error) {
@@ -94,39 +95,33 @@ function Header() {
     }
   }
 
-  // Handle hamburger menu interaction
+  // Hamburger menu hover and click
   const handleHamburgerMouseEnter = () => {
     if (!clicked) setIsMenuOpen(true);
   };
-
   const handleHamburgerMouseLeave = () => {
     if (!clicked) setIsMenuOpen(false);
   };
-
   const handleHamburgerClick = () => {
     setIsMenuOpen(true);
     setClicked(true);
   };
-
   const handleMenuMouseLeave = () => {
     setIsMenuOpen(false);
     setClicked(false);
   };
-
   const closeMenu = () => {
     setIsMenuOpen(false);
     setClicked(false);
   };
 
-  // Handle account menu interaction 
+  // Account menu hover and click
   const handleAccountMouseEnter = () => {
     if (!accountClicked) setIsAccountMenuOpen(true);
   };
-
   const handleAccountMouseLeave = () => {
     if (!accountClicked) setIsAccountMenuOpen(false);
   };
-
   const handleAccountClick = () => {
     setIsAccountMenuOpen(true);
     setAccountClicked(true);

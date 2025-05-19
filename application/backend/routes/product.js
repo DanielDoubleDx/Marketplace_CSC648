@@ -19,6 +19,7 @@ router.get("/:listing_id", async (req, res) => {
 router.post("/", async (req, res) => {
   const { title, product_desc, price, categories, seller_uuid } = req.body;
 
+  // Validate required fields
   if (!title || !product_desc || !price || !categories || !seller_uuid) {
     return res.status(400).json({
       success: false,
@@ -26,6 +27,7 @@ router.post("/", async (req, res) => {
     });
   }
 
+  // Check if seller exists
   try {
     const sellerQuery = "SELECT uuid FROM users WHERE uuid = ?";
     const sellerResults = await pool.query(sellerQuery, [seller_uuid]);
@@ -37,6 +39,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Check if category exists
     const categoryQuery = "SELECT index_id FROM products_categories WHERE index_id = ?";
     const categoryResults = await pool.query(categoryQuery, [categories]);
 
@@ -47,6 +50,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Prepare insert query
     const insertQuery = `
       INSERT INTO listings (
         title,
@@ -69,10 +73,11 @@ router.post("/", async (req, res) => {
       price,
       categoryIdToInsert, // Use the extracted ID here
       seller_uuid,
-      null,
-      null,
+      null, // Thumbnail will be added later
+      null, // Image will be uploaded later
     ]);
 
+    // Respond with success
     return res.status(201).json({
       success: true,
       message: "Listing created successfully",
@@ -91,6 +96,7 @@ router.post("/", async (req, res) => {
 router.post("/:id/upload", upload.single("image"), async (req, res) => {
   const listingId = parseInt(req.params.id);
 
+  // Check if file and listing ID are provided
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -102,9 +108,11 @@ router.post("/:id/upload", upload.single("image"), async (req, res) => {
   const relativePath = `/uploads/${req.file.filename}`;
 
   try {
+    // Update listing with image path
     const sql = "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
     const result = await pool.query(sql, [relativePath, relativePath, listingId]);
 
+    // Check if listing was found
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Listing not found" });
     }
@@ -132,11 +140,13 @@ router.get("/search", async (req, res) => {
 
   const params = [];
 
+  // Filter by category if provided
   if (category && category !== "default") {
     sql += ` AND l.categories = ?`;
     params.push(parseInt(category));
   }
 
+  // Filter by search keyword if provided
   if (query) {
     sql += ` AND (l.title LIKE ? OR l.product_desc LIKE ?)`;
     params.push(`%${query}%`);
@@ -144,6 +154,7 @@ router.get("/search", async (req, res) => {
   }
 
   try {
+    // Execute the query with filters
     const results = await pool.query(sql, params);
     return res.status(200).json({
       count: results.length,
