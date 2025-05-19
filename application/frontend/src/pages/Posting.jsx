@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const Posting = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     price: '',
@@ -22,14 +20,10 @@ const Posting = () => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
-      
-      // Check if token or user data is missing
+
       if (!token || !userData) {
         setIsLoggedIn(false);
-        setPublishError('Invalid user info. Please log in again.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        setPublishError('You must be logged in to post a product.');
         return;
       }
 
@@ -37,10 +31,7 @@ const Posting = () => {
         const user = JSON.parse(userData);
         if (!user || !user.id) {
           setIsLoggedIn(false);
-          setPublishError('Invalid user info. Please log in again.');
-          setTimeout(() => {
-            navigate('/login');
-          }, 2000);
+          setPublishError('You must be logged in to post a product.');
           return;
         }
         setIsLoggedIn(true);
@@ -48,15 +39,12 @@ const Posting = () => {
       } catch (error) {
         console.error('Error parsing user data:', error);
         setIsLoggedIn(false);
-        setPublishError('Error reading user info. Please log in again.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        setPublishError('You must be logged in to post a product.');
       }
     };
 
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -65,14 +53,9 @@ const Posting = () => {
         const data = await res.json();
         const items = data.items || [];
 
-        console.log('API Response:', data);
-        console.log('Items:', items);
-
-        // Get category list from search results
         const categoryMap = new Map();
         items.forEach(item => {
           if (item.categories && item.category_name) {
-            // Make sure category ID is a number
             const categoryId = parseInt(item.categories);
             if (!isNaN(categoryId)) {
               categoryMap.set(item.category_name, categoryId);
@@ -85,7 +68,6 @@ const Posting = () => {
           index_id: id
         }));
 
-        console.log('Unique Categories:', uniqueCategories);
         setCategories(uniqueCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -95,19 +77,16 @@ const Posting = () => {
     fetchCategories();
   }, []);
 
-  // Handle text input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle photo upload
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     setPhotos(files);
     setPreviewURLs(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // Remove selected image
   const removeImage = (index) => {
     const newPhotos = [...photos];
     const newPreviews = [...previewURLs];
@@ -120,7 +99,6 @@ const Posting = () => {
     setPreviewURLs(newPreviews);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
@@ -128,12 +106,8 @@ const Posting = () => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
-    // Check if token or user data is missing
     if (!token || !userData) {
-      setPublishError('Invalid user info. Please log in again.');
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      setPublishError('You must be logged in to post a product.');
       return;
     }
 
@@ -141,22 +115,15 @@ const Posting = () => {
     try {
       user = JSON.parse(userData);
       if (!user || !user.id) {
-        setPublishError('Invalid user info. Please log in again.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        setPublishError('You must be logged in to post a product.');
         return;
       }
     } catch (error) {
       console.error('Error parsing user data:', error);
-      setPublishError('Error reading user info. Please log in again.');
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      setPublishError('You must be logged in to post a product.');
       return;
     }
 
-    // Validate form data
     const isEmpty =
       !formData.title || !formData.price || !formData.product_desc || !formData.category || photos.length === 0;
 
@@ -166,12 +133,8 @@ const Posting = () => {
     }
 
     try {
-      console.log('Form Data:', formData);
-      console.log('Available Categories:', categories);
-      
       const selectedCategory = categories.find(cat => cat.category_name === formData.category);
-      console.log('Selected Category:', selectedCategory);
-      
+
       if (!selectedCategory) {
         setPublishError('Invalid category. Please choose again.');
         return;
@@ -185,8 +148,6 @@ const Posting = () => {
         seller_uuid: user.id,
       };
 
-      console.log('Product Payload:', productPayload);
-
       const response = await fetch('http://13.52.231.140:3001/api/listings', {
         method: 'POST',
         headers: {
@@ -196,16 +157,12 @@ const Posting = () => {
         body: JSON.stringify(productPayload),
       });
 
-      console.log('Response Status:', response.status);
       const result = await response.json();
-      console.log('Server Response:', result);
 
       if (response.ok) {
-        console.log('✅ Listing created successfully:', result);
         setIsPublished(true);
         setPublishError(null);
-        
-        // Upload image after listing is created
+
         if (result.listing_id && photos.length > 0) {
           const formData = new FormData();
           formData.append('image', photos[0]);
@@ -221,7 +178,6 @@ const Posting = () => {
           }
         }
 
-        // Reset form
         setFormData({
           title: '',
           price: '',
@@ -234,7 +190,7 @@ const Posting = () => {
 
         alert('Product posted successfully!');
       } else {
-        console.error('❌ Error creating listing:', result.error);
+        console.error('Error creating listing:', result.error);
         setPublishError(result.error || 'Error posting product');
       }
 
@@ -244,18 +200,14 @@ const Posting = () => {
     }
   };
 
-  // Style input box based on error
   const getInputClass = (field) =>
-    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${
-      submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
+    `w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none ${submitted && !formData[field] ? 'border-2 border-red-500' : 'border border-gray-600'
     }`;
 
-  // Style photo upload box based on error
   const getPhotoBoxClass = () =>
-    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${
-      submitted && photos.length === 0
-        ? 'border-red-500 border-dashed'
-        : 'border-gray-600 border-dashed hover:border-green-300'
+    `w-full h-40 border-2 rounded-lg flex items-center justify-center cursor-pointer transition ${submitted && photos.length === 0
+      ? 'border-red-500 border-dashed'
+      : 'border-gray-600 border-dashed hover:border-green-300'
     }`;
 
   return (
@@ -388,7 +340,7 @@ const Posting = () => {
         {/* Login warning */}
         {!isLoggedIn && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            <p className="text-center">{publishError || 'Bạn phải đăng nhập để đăng sản phẩm.'}</p>
+            <p className="text-center">{publishError || 'You must be logged in to post a product.'}</p>
           </div>
         )}
 
@@ -397,13 +349,12 @@ const Posting = () => {
           <button
             onClick={handleSubmit}
             disabled={!isLoggedIn}
-            className={`w-full ${
-              !isLoggedIn
+            className={`w-full ${!isLoggedIn
                 ? 'bg-gray-600 cursor-not-allowed'
                 : 'bg-green-500 hover:bg-green-600'
-            } text-white font-bold py-3 px-4 rounded-lg transition duration-200`}
+              } text-white font-bold py-3 px-4 rounded-lg transition duration-200`}
           >
-            {isPublished ? 'Đã Đăng Sản Phẩm' : 'Đăng Sản Phẩm'}
+            {isPublished ? 'Product Posted' : 'Post Product'}
           </button>
           {publishError && (
             <p className="text-red-500 text-sm mt-2 text-center">{publishError}</p>
@@ -412,7 +363,7 @@ const Posting = () => {
 
         {isPublished && (
           <div className="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-            <p className="text-center">Sản phẩm đã được đăng thành công!</p>
+            <p className="text-center">The product has been successfully posted!</p>
           </div>
         )}
       </section>
