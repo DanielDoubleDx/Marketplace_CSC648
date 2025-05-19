@@ -60,7 +60,7 @@ const Posting = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://13.52.231.140:3001/api/search');
+        const res = await fetch('http://13.52.231.140:3001/api/categories');
         const data = await res.json();
         const items = data.items || [];
 
