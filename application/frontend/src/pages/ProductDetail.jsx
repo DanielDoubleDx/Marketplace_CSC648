@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 // Skeleton loader component
 function ProductDetailSkeleton() {
@@ -18,52 +18,74 @@ function ProductDetailSkeleton() {
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [seller, setSeller] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [authError, setAuthError] = useState(null);
 
   const API_BASE = "http://13.52.231.140:3001";
 
   useEffect(() => {
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        setAuthError(null);
 
-      const response = await fetch(`${API_BASE}/api/search`);
-      const data = await response.json();
-      const foundProduct = data.items.find((p) => String(p.listing_id) === id);
-      setProduct(foundProduct);
+        const response = await fetch(`${API_BASE}/api/search`);
+        if (response.status === 401) {
+          setAuthError("Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.");
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+          return;
+        }
+        const data = await response.json();
+        const foundProduct = data.items.find((p) => String(p.listing_id) === id);
+        setProduct(foundProduct);
 
-      if (foundProduct && foundProduct.seller_id) {
-        fetchSeller(foundProduct.seller_id);
+        if (foundProduct && foundProduct.seller_id) {
+          fetchSeller(foundProduct.seller_id);
+        }
+      } catch (err) {
+        setError("Failed to fetch product.");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Failed to fetch product.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchSeller = async (sellerId) => {
-    try {
-      const response = await fetch(`${API_BASE}/api/user/${sellerId}`);
-      const data = await response.json();
-      if (data.seller) {
-        setSeller(data.seller);
+    const fetchSeller = async (sellerId) => {
+      try {
+        const response = await fetch(`${API_BASE}/api/user/${sellerId}`);
+        const data = await response.json();
+        if (data.seller) {
+          setSeller(data.seller);
+        }
+      } catch (err) {
+        console.error("Failed to fetch seller info:", err);
       }
-    } catch (err) {
-      console.error("Failed to fetch seller info:", err);
-    }
-  };
+    };
 
-  fetchProduct();
-}, [id]);
+    fetchProduct();
+  }, [id, navigate]);
 
   // Show loading skeleton while fetching
   if (loading) return <ProductDetailSkeleton />;
+
+  // Show auth error if present
+  if (authError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Lỗi xác thực: </strong>
+          <span className="block sm:inline">{authError}</span>
+        </div>
+      </div>
+    );
+  }
 
   // Debug if fetch failed or product not found
   if (error || !product)

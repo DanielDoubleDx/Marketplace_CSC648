@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const categoryQuery = "SELECT index_id FROM products_categories WHERE categories = ?";
+    const categoryQuery = "SELECT index_id FROM products_categories WHERE index_id = ?";
     const categoryResults = await pool.query(categoryQuery, [categories]);
 
     if (categoryResults.length === 0) {
@@ -49,10 +49,10 @@ router.post("/", async (req, res) => {
 
     const insertQuery = `
       INSERT INTO listings (
-        title, 
-        product_desc, 
-        price, 
-        categories, 
+        title,
+        product_desc,
+        price,
+        categories,
         seller_id,
         thumbnail,
         listing_img,
@@ -60,11 +60,14 @@ router.post("/", async (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     `;
 
+    // Extract the category ID from the results
+    const categoryIdToInsert = categoryResults[0].index_id;
+
     const result = await pool.query(insertQuery, [
       title,
       product_desc,
       price,
-      categoryResults,
+      categoryIdToInsert, // Use the extracted ID here
       seller_uuid,
       null,
       null,

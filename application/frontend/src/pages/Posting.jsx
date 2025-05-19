@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Posting = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     price: '',
@@ -13,23 +15,76 @@ const Posting = () => {
   const [submitted, setSubmitted] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishError, setPublishError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (!token || !userData) {
+        setIsLoggedIn(false);
+        setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userData);
+        if (!user || !user.id) {
+          setIsLoggedIn(false);
+          setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+          return;
+        }
+        setIsLoggedIn(true);
+        setPublishError(null);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        setIsLoggedIn(false);
+        setPublishError('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/search');
+        const res = await fetch('http://13.52.231.140:3001/api/search');
         const data = await res.json();
         const items = data.items || [];
 
-        const uniqueCategories = Array.from(
-          new Set(items.map((item) => item.category_name))
-        ).map((name) => ({ category_name: name }));
+        console.log('API Response:', data);
+        console.log('Items:', items);
 
+        // Lấy danh sách categories từ kết quả search
+        const categoryMap = new Map();
+        items.forEach(item => {
+          if (item.categories && item.category_name) {
+            // Đảm bảo categories là số
+            const categoryId = parseInt(item.categories);
+            if (!isNaN(categoryId)) {
+              categoryMap.set(item.category_name, categoryId);
+            }
+          }
+        });
+
+        const uniqueCategories = Array.from(categoryMap.entries()).map(([name, id]) => ({
+          category_name: name,
+          index_id: id
+        }));
+
+        console.log('Unique Categories:', uniqueCategories);
         setCategories(uniqueCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -65,58 +120,100 @@ const Posting = () => {
     e.preventDefault();
     setSubmitted(true);
 
+    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    if (!userData) {
-      alert('Bạn phải đăng nhập để đăng sản phẩm.');
+
+    if (!token || !userData) {
+      setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
       return;
     }
 
     let user;
     try {
       user = JSON.parse(userData);
-      if (!user || !user.uuid) {
-        alert('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+      if (!user || !user.id) {
+        setPublishError('Thông tin người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
         return;
       }
     } catch (error) {
-      console.error('Error parsing user data from localStorage:', error);
-      alert('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+      console.error('Error parsing user data:', error);
+      setPublishError('Lỗi đọc thông tin người dùng. Vui lòng đăng nhập lại.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
       return;
     }
-
-    const seller_uuid = user.uuid;
 
     const isEmpty =
       !formData.title || !formData.price || !formData.product_desc || !formData.category || photos.length === 0;
 
     if (isEmpty) {
-      alert('Vui lòng điền đầy đủ thông tin sản phẩm và tải lên ít nhất một ảnh.');
+      setPublishError('Vui lòng điền đầy đủ thông tin sản phẩm và tải lên ít nhất một ảnh.');
       return;
     }
 
-    const productPayload = {
-      title: formData.title,
-      product_desc: formData.product_desc,
-      price: parseFloat(formData.price),
-      categories: formData.category,
-      seller_uuid: seller_uuid,
-    };
-
-    console.log('📦 Submitting Listing Data to Backend...', productPayload);
-
     try {
-      const response = await fetch('http://localhost:3001/api/listings', {
+      console.log('Form Data:', formData);
+      console.log('Available Categories:', categories);
+      
+      const selectedCategory = categories.find(cat => cat.category_name === formData.category);
+      console.log('Selected Category:', selectedCategory);
+      
+      if (!selectedCategory) {
+        setPublishError('Danh mục không hợp lệ. Vui lòng chọn lại.');
+        return;
+      }
+
+      const productPayload = {
+        title: formData.title,
+        product_desc: formData.product_desc,
+        price: parseFloat(formData.price),
+        categories: selectedCategory.index_id,
+        seller_uuid: user.id,
+      };
+
+      console.log('Product Payload:', productPayload);
+
+      const response = await fetch('http://13.52.231.140:3001/api/listings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(productPayload),
       });
 
+      console.log('Response Status:', response.status);
       const result = await response.json();
+      console.log('Server Response:', result);
 
       if (response.ok) {
         console.log('✅ Listing created successfully:', result);
+        setIsPublished(true);
+        setPublishError(null);
+        
+        // Upload images if listing was created successfully
+        if (result.listing_id && photos.length > 0) {
+          const formData = new FormData();
+          formData.append('image', photos[0]);
+          formData.append('listingId', result.listing_id);
+
+          const uploadResponse = await fetch(`http://13.52.231.140:3001/api/listings/${result.listing_id}/upload`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload image');
+          }
+        }
+
         setFormData({
           title: '',
           price: '',
@@ -128,15 +225,14 @@ const Posting = () => {
         setSubmitted(false);
 
         alert('Đã đăng sản phẩm thành công!');
-
       } else {
         console.error('❌ Error creating listing:', result.error);
-        alert(`Lỗi khi đăng sản phẩm: ${result.error || response.statusText}`);
+        setPublishError(result.error || 'Lỗi khi đăng sản phẩm');
       }
 
     } catch (err) {
-      console.error('Submission error (Network or Server error):', err);
-      alert('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
+      console.error('Submission error:', err);
+      setPublishError('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
     }
   };
 
@@ -281,25 +377,34 @@ const Posting = () => {
 
         {/* Login warning */}
         {!isLoggedIn && (
-          <p className="text-yellow-400 mb-4 text-center">
-            You must be logged in to publish a product.
-          </p>
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="text-center">{publishError || 'Bạn phải đăng nhập để đăng sản phẩm.'}</p>
+          </div>
         )}
 
-        {/* Button */}
-        <div className="flex justify-center">
+        {/* Publish Button */}
+        <div className="mt-6">
           <button
-            className={`${
+            onClick={handleSubmit}
+            disabled={!isLoggedIn}
+            className={`w-full ${
               !isLoggedIn
                 ? 'bg-gray-600 cursor-not-allowed'
                 : 'bg-green-500 hover:bg-green-600'
-            } text-white font-semibold px-8 py-3 rounded-lg transition`}
-            onClick={handleSubmit}
-            disabled={!isLoggedIn}
+            } text-white font-bold py-3 px-4 rounded-lg transition duration-200`}
           >
-            Publish
+            {isPublished ? 'Đã Đăng Sản Phẩm' : 'Đăng Sản Phẩm'}
           </button>
+          {publishError && (
+            <p className="text-red-500 text-sm mt-2 text-center">{publishError}</p>
+          )}
         </div>
+
+        {isPublished && (
+          <div className="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            <p className="text-center">Sản phẩm đã được đăng thành công!</p>
+          </div>
+        )}
       </section>
     </div>
   );
