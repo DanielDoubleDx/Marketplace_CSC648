@@ -76,43 +76,52 @@ const Posting = () => {
     if (isEmpty) return;
 
     try {
-      console.log('📦 Submitting Listing Data...');
-      console.log('Title:', formData.title);
-      console.log('Price:', formData.price);
-      console.log('Description:', formData.product_desc);
-      console.log('Category:', formData.category);
-      console.log('Photos:', photos);
+      const token = localStorage.getItem('token');
 
-      // Simulate listing creation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const fakeListingId = 999;
+      const payload = new FormData();
+      payload.append('title', formData.title);
+      payload.append('price', formData.price);
+      payload.append('product_desc', formData.product_desc);
+      payload.append('category', formData.category);
 
-      console.log(`✅ Mock listing created with ID: ${fakeListingId}`);
+      photos.forEach((photo) => {
+        payload.append('photos', photo);
+      });
 
-      // Simulate image upload
-      if (photos.length > 0) {
-        console.log(`🖼 Mock uploading image for listing ID: ${fakeListingId}`);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log('✅ Mock image upload complete');
+      const res = await fetch('http://13.52.231.140:3001/api/listings', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit listing');
       }
 
-      // Simulate updating search index
-      const searchPayload = {
-        title: formData.title,
-        price: formData.price,
-        product_desc: formData.product_desc,
-        category_name: formData.category,
-        listingId: fakeListingId,
-      };
+      alert('Listing created successfully!');
 
-      console.log('🔍 Mock updating search index with:', searchPayload);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('✅ Mock search index updated');
+      // Confirm by fetching and logging the listing from the database
+      const confirmRes = await fetch('http://13.52.231.140:3001/api/search');
+      const confirmData = await confirmRes.json();
+      const items = confirmData.items || [];
 
-      alert('Mock listing created successfully! Check your console logs (F12).');
+      const match = items.find(item => item.title === formData.title);
+      if (match) {
+        console.log('✅ Product successfully stored in the database:', match);
+      } else {
+        console.warn('⚠️ Product submission succeeded, but not found in /api/search response.');
+      }
+
+      // Reset form
+      setFormData({ title: '', price: '', product_desc: '', category: '' });
+      setPhotos([]);
+      setPreviewURLs([]);
+      setSubmitted(false);
     } catch (err) {
       console.error('Submission error:', err);
-      alert('An error occurred while simulating listing creation.');
+      alert('An error occurred while submitting the listing.');
     }
   };
 
