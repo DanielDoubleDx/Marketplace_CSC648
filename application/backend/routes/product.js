@@ -124,6 +124,16 @@ router.post("/:id/upload", upload.single("image"), async (req, res) => {
   }
 });
 
+router.get('/categories', async (req, res) => {
+  try {
+    const rows = await pool.query('SELECT categories AS category_name FROM products_categories ORDER BY index_id');
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
 // Search products
 router.get("/search", async (req, res) => {
   let { category, query } = req.query;
