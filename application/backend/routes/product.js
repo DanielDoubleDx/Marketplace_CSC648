@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../config/database');
-const upload = require('../middleware/upload');
+const pool = require("../config/database");
+const upload = require("../middleware/upload");
 
 // Get product by ID
 router.get("/product/:listing_id", async (req, res) => {
@@ -23,7 +23,8 @@ router.post("/product", async (req, res) => {
   if (!title || !product_desc || !price || !categories || !seller_uuid) {
     return res.status(400).json({
       success: false,
-      error: "Missing required fields. Title, description, price, category, and seller ID are required.",
+      error:
+        "Missing required fields. Title, description, price, category, and seller ID are required.",
     });
   }
 
@@ -39,9 +40,21 @@ router.post("/product", async (req, res) => {
       });
     }
 
-    // Check if category exists
-    const categoryQuery = "SELECT index_id FROM products_categories WHERE index_id = ?";
-    const categoryResults = await pool.query(categoryQuery, [categories]);
+    // Check if category exists (by ID or name)
+    let categoryQuery;
+    let categoryParams;
+
+    if (!isNaN(categories)) {
+      categoryQuery =
+        "SELECT index_id FROM products_categories WHERE index_id = ?";
+      categoryParams = [categories];
+    } else {
+      categoryQuery =
+        "SELECT index_id FROM products_categories WHERE categories = ?";
+      categoryParams = [categories];
+    }
+
+    const categoryResults = await pool.query(categoryQuery, categoryParams);
 
     if (categoryResults.length === 0) {
       return res.status(404).json({
@@ -109,8 +122,13 @@ router.post("/:id/upload", upload.single("image"), async (req, res) => {
 
   try {
     // Update listing with image path
-    const sql = "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
-    const result = await pool.query(sql, [relativePath, relativePath, listingId]);
+    const sql =
+      "UPDATE listings SET listing_img = ?, thumbnail = ? WHERE listing_id = ?";
+    const result = await pool.query(sql, [
+      relativePath,
+      relativePath,
+      listingId,
+    ]);
 
     // Check if listing was found
     if (result.affectedRows === 0) {
@@ -124,13 +142,15 @@ router.post("/:id/upload", upload.single("image"), async (req, res) => {
   }
 });
 
-router.get('/categories', async (req, res) => {
+router.get("/categories", async (req, res) => {
   try {
-    const rows = await pool.query('SELECT categories AS category_name FROM products_categories ORDER BY index_id');
+    const rows = await pool.query(
+      "SELECT index_id, categories AS category_name FROM products_categories ORDER BY index_id"
+    );
     res.json(rows);
   } catch (err) {
-    console.error('Error fetching categories:', err);
-    res.status(500).json({ error: 'Failed to fetch categories' });
+    console.error("Error fetching categories:", err);
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
 
@@ -176,4 +196,4 @@ router.get("/search", async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;
