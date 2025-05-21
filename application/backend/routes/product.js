@@ -4,7 +4,7 @@ const pool = require('../config/database');
 const upload = require('../middleware/upload');
 
 // Get product by ID
-router.get("/:listing_id", async (req, res) => {
+router.get("/product/:listing_id", async (req, res) => {
   const listing_id = req.params.listing_id;
   try {
     const sql = `SELECT * FROM listings WHERE listing_id = ?`;
@@ -16,7 +16,7 @@ router.get("/:listing_id", async (req, res) => {
 });
 
 // Create new product
-router.post("/", async (req, res) => {
+router.post("/product", async (req, res) => {
   const { title, product_desc, price, categories, seller_uuid } = req.body;
 
   // Validate required fields

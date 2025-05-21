@@ -4,7 +4,7 @@ const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
 // Get user info
-router.get("/:uuid", async (req, res) => {
+router.get("/user/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
   try {
     // Fetch user details by UUID

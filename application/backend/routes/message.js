@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Get user messages
-router.get("/:uuid", async (req, res) => {
+router.get("/message/:uuid", async (req, res) => {
   const uuid = req.params.uuid;
   if (!uuid) {
     return res.status(400).json({ error: "UUID is missing from parameter" });
@@ -19,7 +19,7 @@ router.get("/:uuid", async (req, res) => {
 });
 
 // Send message
-router.post("/", async (req, res) => {
+router.post("/message", async (req, res) => {
   const { sender, receiver, sender_text, receiver_text } = req.body;
   
   if (!sender || !receiver) {
