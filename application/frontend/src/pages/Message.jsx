@@ -1,6 +1,4 @@
 import React, { useRef, useEffect, useState } from 'react';
-import axios from 'axios';
-import { use } from 'react';
 
 /*
 // Generate users
@@ -20,10 +18,12 @@ function Message() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
   const [users, setUsers] = useState([]);
-  /*
+  const [clicked, setClicked] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   //test user id 1
-  const [userId, setUserId] = useState(1);
-  */
+  //const [userId, setUserId] = useState(1);
+
   
   const storedUser = JSON.parse(localStorage.getItem('user'));
   const [userId, setUserId] = useState(storedUser?.id || null);
@@ -34,8 +34,14 @@ function Message() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://13.91.27.12:3001/api/users');
-        setUsers(response.data);
+        //const response = await axios.get('http://13.91.27.12:3001/api/user');
+        //setUsers(response.data);
+        
+        const response = await fetch('http://13.91.27.12:3001/api/user');
+        const data = await response.json();
+        setUsers(data);
+
+        
         if(response.data.length > 0) {
           setSelectedUser(response.data[0]);
         }
@@ -55,8 +61,11 @@ function Message() {
 
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://13.91.27.12:3001/api/messages');
-      const rawData = response.data;
+      //const response = await axios.get(`http://13.91.27.12:3001/api/messaging/${userId}`);
+      //const rawData = response.data;
+      const response = await fetch(`http://13.91.27.12:3001/api/messaging/${userId}`);
+      const rawData = await response.json();
+
 
       const normalizedMessages = [];
       rawData.forEach((entry)=>{
@@ -96,11 +105,22 @@ function Message() {
     const newMessage = {
       text: message,
       sender: userId,
-      receiver: selectedUser.id,
+      receiver: selectedUser.uuid,
     };
     try {
-      const response = await axios.post('http://13.91.27.12:3001/api/messages', newMessage);
-      setAllMessages((prevMessages) => [...prevMessages, response.data]);
+      //const response = await axios.post(`http://13.91.27.12:3001/api/messaging/${userId}`, newMessage);
+      //setAllMessages((prevMessages) => [...prevMessages, response.data]);
+
+      const response = await fetch(`http://13.91.27.12:3001/api/messaging/${userId}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMessage),
+      });
+      const data = await response.json();
+      setAllMessages((prevMessages) => [...prevMessages, data]);
+
       setMessage('');
       console.log('Message sent:', response.data);
     } catch (error) {
@@ -142,12 +162,50 @@ function Message() {
       });
     }
   };
-  
+
+  const handleHamburgerMouseEnter = () => {
+    if (!clicked) setIsMenuOpen(true);
+  };
+  const handleHamburgerMouseLeave = () => {
+    if (!clicked) setIsMenuOpen(false);
+  };
+  const handleHamburgerClick = () => {
+    setIsMenuOpen(true);
+    setClicked(true);
+  };
+  const handleMenuMouseLeave = () => {
+    if(!clicked) setIsMenuOpen(false);
+    setClicked(false);
+  };
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+    setClicked(false);
+  };
+  const setLocation1 = () => {
+    setMessage('Lets meet at the Caesar Chavez Student Center https://www.google.com/maps/place/Cesar+Chavez+Student+Center/@37.7218478,-122.4792209,18.71z/data=!4m14!1m7!3m6!1s0x808f7db005c0e281:0xa57a7c9f946a45d3!2sSan+Francisco+State+University!8m2!3d37.7241492!4d-122.4799405!16zL20vMDEzODA3!3m5!1s0x808f7d455f68362f:0x60449417c15ebf0!8m2!3d37.7225174!4d-122.4787258!16s%2Fg%2F11h4chkxjd?entry=ttu&g_ep=EgoyMDI1MDUxNS4xIKXMDSoASAFQAw%3D%3D');
+    closeMenu();
+  };
+  const setLocation2 = () => {
+    setMessage('Lets meet at the SFSU Library https://www.google.com/maps/place/J.+Paul+Leonard+Library/@37.7215794,-122.4789369,19.29z/data=!3m1!5s0x808f7db19c82147d:0x9522980b53575235!4m14!1m7!3m6!1s0x808f7db005c0e281:0xa57a7c9f946a45d3!2sSan+Francisco+State+University!8m2!3d37.7241492!4d-122.4799405!16zL20vMDEzODA3!3m5!1s0x808f7db19cf793a3:0x82b61bd57041d4c1!8m2!3d37.7213653!4d-122.4781364!16s%2Fg%2F1hdzvq0kl?entry=ttu&g_ep=EgoyMDI1MDUxNS4xIKXMDSoASAFQAw%3D%3D');
+    closeMenu();
+  };
+  const setLocation3 = () => {
+    setMessage(`Lets meet at Cafe Rosso https://www.google.com/maps/place/Cafe+Rosso/@37.7222469,-122.4797513,19z/data=!4m14!1m7!3m6!1s0x808f7db005c0e281:0xa57a7c9f946a45d3!2sSan+Francisco+State+University!8m2!3d37.7241492!4d-122.4799405!16zL20vMDEzODA3!3m5!1s0x808f7db02f2f1793:0xe5d876e1cf3b2686!8m2!3d37.7228539!4d-122.4802905!16s%2Fg%2F1ptvs11h2?entry=ttu&g_ep=EgoyMDI1MDUxNS4xIKXMDSoASAFQAw%3D%3D`)
+    closeMenu();
+  };
+  const setLocation4 = () => {
+    setMessage(`Lets meet at the Mashouf Wellness Center https://www.google.com/maps/place/Mashouf+Wellness+Center/@37.7219295,-122.482562,18.42z/data=!4m14!1m7!3m6!1s0x808f7db005c0e281:0xa57a7c9f946a45d3!2sSan+Francisco+State+University!8m2!3d37.7241492!4d-122.4799405!16zL20vMDEzODA3!3m5!1s0x808f7daf7158d19b:0x86a26e2b053dbeb7!8m2!3d37.7227874!4d-122.4841667!16s%2Fg%2F11g9vmqkb5?entry=ttu&g_ep=EgoyMDI1MDUxNS4xIKXMDSoASAFQAw%3D%3D`)
+    closeMenu();
+  };
+  const setLocation5 = () => {
+    setMessage(`lets meet at the University Police Department https://www.google.com/maps/place/University+Police+Department/@37.7256263,-122.482499,18.71z/data=!4m14!1m7!3m6!1s0x808f7db005c0e281:0xa57a7c9f946a45d3!2sSan+Francisco+State+University!8m2!3d37.7241492!4d-122.4799405!16zL20vMDEzODA3!3m5!1s0x808f7da53cdba9f9:0x6dc874e2aa4aa558!8m2!3d37.7259236!4d-122.4816663!16s%2Fg%2F11xhnpt9z?entry=ttu&g_ep=EgoyMDI1MDUxNS4xIKXMDSoASAFQAw%3D%3D`)
+    closeMenu();
+  };
   const filteredMessages = selectedUser
   ? allMessages.filter(
       (msg) =>
-        (msg.sender === userId && msg.receiver === selectedUser.id) ||
-        (msg.sender === selectedUser.id && msg.receiver === userId)
+        (msg.sender === userId && msg.receiver === selectedUser.uuid) ||
+        (msg.sender === selectedUser.uuid && msg.receiver === userId)
     )
   : [];
 
@@ -227,6 +285,30 @@ function Message() {
           >
             Send
           </button>
+          <div
+            className="relative"
+            onMouseLeave={handleMenuMouseLeave}
+          >
+            <button
+              onMouseEnter={handleHamburgerMouseEnter}
+              onClick={handleHamburgerClick}
+              className="bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-green-600 transition text-sm font-semibold"
+              aria-label="Open menu"
+            >
+              ≡
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute left-0 top-full mt-2 bg-gray-800 rounded shadow-lg z-50 p-4 w-32 space-y-3">
+                <div className="text-white" onClick={setLocation1}>Caesar Chavez Center</div>
+                <div className="text-white" onClick={setLocation2}>SFSU Library</div>
+                <div className="text-white" onClick={setLocation3}>Cafe Rosso</div>
+                <div className="text-white" onClick={setLocation4}>Mashouf Wellness Center</div>
+                <div className="text-white" onClick={setLocation5}>University Police Department</div>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
